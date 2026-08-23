@@ -58,8 +58,10 @@
         .level-card.locked { opacity: 0.5; background: #e2e8f0; cursor: not-allowed; }
         .badge-icon { font-size: 20px; display: block; margin-top: 4px; }
 
-        .btn-read-modal { background: #2563eb; color: white; border: none; padding: 14px 20px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 25px; box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3); transition: background 0.2s; }
+        .btn-read-modal { background: #2563eb; color: white; border: none; padding: 16px 20px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3); transition: background 0.2s; }
         .btn-read-modal:hover { background: #1d4ed8; }
+
+        .reading-box { background: #f8fafc; border: 2px dashed #3b82f6; border-radius: 10px; padding: 20px; margin-bottom: 25px; text-align: justify; line-height: 1.8; color: #334155; font-size: 16px; }
 
         .question { text-align: left; margin-bottom: 20px; padding: 18px; border-left: 5px solid var(--primary); background: #f1f5f9; border-radius: 0 10px 10px 0; }
         .tag { display: inline-block; font-size: 11px; padding: 4px 10px; border-radius: 12px; color: white; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; }
@@ -67,14 +69,14 @@
         .options label { display: block; margin: 8px 0; padding: 12px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; text-align: left; transition: background 0.15s; }
         .options label:hover { background: #e2e8f0; }
 
+        /* Modal integral */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal-content { background: white; padding: 30px; border-radius: 16px; max-width: 750px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); position: relative; text-align: left; }
+        .modal-content { background: white; padding: 30px; border-radius: 16px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); position: relative; text-align: left; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; }
         .modal-header h2 { margin: 0; color: var(--primary); font-size: 22px; }
         .close-modal { background: #f1f5f9; border: none; font-size: 22px; font-weight: bold; color: #64748b; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .close-modal:hover { background: #e2e8f0; color: var(--danger); }
-        .modal-body { font-size: 16px; line-height: 1.8; color: #334155; text-align: justify; }
 
         .hidden { display: none !important; }
     </style>
@@ -129,6 +131,7 @@
             </div>
         </header>
 
+        <!-- PANTALLA PRINCIPAL SOLO CON NIVELES Y BOTÓN DE ACCESO -->
         <div class="card">
             <h3>Tus Niveles de Lectura</h3>
             <div class="grid-levels" id="levels-grid"></div>
@@ -138,34 +141,37 @@
             <h2 id="quiz-title">Selecciona un nivel</h2>
             
             <button id="btn-open-reading" class="btn-read-modal hidden" onclick="abrirModalLectura()">
-                📖 Haz clic aquí para ver la lectura emergente
+                📖 Abrir Lectura y Evaluación del Nivel
             </button>
-
-            <form id="quiz-form"></form>
-            <button class="btn-main hidden" id="btn-submit-quiz" onclick="evaluarQuiz()">Enviar Respuestas</button>
-            <div id="result-message" style="margin-top:15px; font-weight:bold;"></div>
+            
+            <div id="result-message-main" style="margin-top:15px; font-weight:bold; color: #64748b;"></div>
         </div>
     </div>
 
 </div>
 
+<!-- VENTANA EMERGENTE (MODAL) EXCLUSIVA PARA TEXTO Y PREGUNTAS -->
 <div id="reading-modal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
             <h2 id="modal-reading-title">Título de la Lectura</h2>
             <button class="close-modal" onclick="cerrarModalLectura()">&times;</button>
         </div>
-        <div class="modal-body" id="modal-reading-text">
-            Cargando contenido de la lectura...
+        
+        <!-- Contenido textual -->
+        <div class="reading-box" id="modal-reading-text">
+            Cargando lectura...
         </div>
-        <div style="margin-top: 25px; text-align: right;">
-            <button class="btn-main" style="width: auto; padding: 10px 20px;" onclick="cerrarModalLectura()">Comenzar Cuestionario</button>
-        </div>
+
+        <!-- Formulario con las 10 preguntas -->
+        <form id="quiz-form"></form>
+
+        <button class="btn-main hidden" id="btn-submit-quiz" onclick="evaluarQuiz()">Enviar Respuestas</button>
+        <div id="result-message" style="margin-top:15px; font-weight:bold; text-align: center;"></div>
     </div>
 </div>
 
 <script>
-// URL actualizada del despliegue de Apps Script
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFRw66q7CfQSAzkbBE1HttpZh2LoCxna3g7PWzAcApE4y-kBQZ330CZhKkNRL3KmnvNg/exec";
 
 let usuarioActual = "";
@@ -267,15 +273,17 @@ function cargarLectura(n) {
     const btnSubmit = document.getElementById('btn-submit-quiz');
     const btnReadModal = document.getElementById('btn-open-reading');
     const form = document.getElementById('quiz-form');
-    document.getElementById('result-message').innerText = 'Cargando datos...';
+    document.getElementById('result-message-main').innerText = 'Cargando datos del nivel...';
 
     jsonp(`${SCRIPT_URL}?action=getLectura&nivel=${n}`)
     .then(data => {
+        document.getElementById('result-message-main').innerText = '';
         document.getElementById('result-message').innerText = '';
+        
         if(data.status === "success") {
-            document.getElementById('quiz-title').innerText = `Cuestionario - Nivel ${n}`;
+            document.getElementById('quiz-title').innerText = `Nivel ${n}: ${data.titulo}`;
             
-            document.getElementById('modal-reading-title').innerText = data.titulo;
+            document.getElementById('modal-reading-title').innerText = `Nivel ${n} - ${data.titulo}`;
             document.getElementById('modal-reading-text').innerText = data.texto;
 
             btnReadModal.classList.remove('hidden');
@@ -301,8 +309,7 @@ function cargarLectura(n) {
         } else {
             document.getElementById('quiz-title').innerText = `Nivel ${n}`;
             btnReadModal.classList.add('hidden');
-            form.innerHTML = '<p style="margin: 20px 0;">Esta lectura aún está en preparación.</p>';
-            btnSubmit.classList.add('hidden');
+            document.getElementById('result-message-main').innerText = 'Esta lectura aún está en preparación.';
         }
     });
 }
@@ -346,10 +353,13 @@ function evaluarQuiz() {
             }
             
             renderizarNiveles();
-            setTimeout(() => { cargarLectura(nivelSeleccionado); }, 2500);
+            setTimeout(() => { 
+                cerrarModalLectura();
+                cargarLectura(nivelSeleccionado); 
+            }, 2500);
         } else {
             res.style.color = "red";
-            res.innerText = `Obtuviste ${data.correctas}/10 aciertos. Para avanzar debes sacar 100%. Haz clic en el botón azul para repasar la lectura.`;
+            res.innerText = `Obtuviste ${data.correctas}/10 aciertos. Para avanzar debes sacar 100%. Revisa el texto arriba e inténtalo de nuevo.`;
         }
     });
 }
