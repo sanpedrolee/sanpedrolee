@@ -32,7 +32,7 @@
 
 <div class="container">
 
-    <!-- 1. BIENVENIDA -->
+    <!-- 1. PANTALLA DE BIENVENIDA -->
     <div id="welcome-screen" class="card">
         <h1>📖 SANPEDROLEE</h1>
         <h3>Plataforma Institucional de Comprensión Lectora</h3>
@@ -48,7 +48,7 @@
         <button class="btn-main" onclick="mostrarLogin()">INICIAR SESIÓN</button>
     </div>
 
-    <!-- 2. LOGIN -->
+    <!-- 2. PANTALLA DE LOGIN -->
     <div id="login-screen" class="card hidden" style="max-width: 400px; margin: 40px auto;">
         <h2>Iniciar Sesión</h2>
         <form onsubmit="ejecutarLogin(event)">
@@ -93,13 +93,13 @@
 </div>
 
 <script>
-// PEGA TU URL DE APPS SCRIPT AQUÍ
-const SCRIPT_URL = "URL_DE_TU_GOOGLE_APPS_SCRIPT_AQUI";
+// URL VINCULADA DE GOOGLE APPS SCRIPT
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTe0mKi__1SinX1AJfb6NT-P7lS8JIowDdT5XiqZwhRzVT3zt9K5hp9-vym4dGyka7OA/exec";
 
 let usuarioActual = "";
 let nivelMaximo = 1;
 let nivelSeleccionado = 1;
-https://script.google.com/macros/s/AKfycbwTe0mKi__1SinX1AJfb6NT-P7lS8JIowDdT5XiqZwhRzVT3zt9K5hp9-vym4dGyka7OA/exec
+
 function mostrarLogin() {
     document.getElementById('welcome-screen').classList.add('hidden');
     document.getElementById('login-screen').classList.remove('hidden');
@@ -113,7 +113,10 @@ function ejecutarLogin(e) {
 
     msg.innerText = "Conectando con Google Sheets...";
     
-    fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`)
+    fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`, {
+        method: "GET",
+        redirect: "follow"
+    })
     .then(res => res.json())
     .then(data => {
         if(data.status === "success") {
@@ -129,7 +132,10 @@ function ejecutarLogin(e) {
             msg.innerText = "Usuario o contraseña incorrectos.";
         }
     })
-    .catch(() => { msg.innerText = "Error de conexión."; });
+    .catch(error => { 
+        console.error("Error:", error);
+        msg.innerText = "Error de conexión. Verifica las credenciales en Google Sheets."; 
+    });
 }
 
 function renderizarNiveles() {
@@ -165,7 +171,10 @@ function cargarLectura(n) {
     const form = document.getElementById('quiz-form');
     document.getElementById('result-message').innerText = 'Cargando texto desde la base de datos...';
 
-    fetch(`${SCRIPT_URL}?action=getLectura&nivel=${n}`)
+    fetch(`${SCRIPT_URL}?action=getLectura&nivel=${n}`, {
+        method: "GET",
+        redirect: "follow"
+    })
     .then(res => res.json())
     .then(data => {
         document.getElementById('result-message').innerText = '';
@@ -193,6 +202,9 @@ function cargarLectura(n) {
             form.innerHTML = '';
             btn.classList.add('hidden');
         }
+    })
+    .catch(() => {
+        document.getElementById('result-message').innerText = 'Error al cargar la lectura desde la base de datos.';
     });
 }
 
@@ -211,7 +223,10 @@ function evaluarQuiz() {
     res.style.color = "blue";
     res.innerText = "Evaluando respuestas en el servidor...";
 
-    fetch(`${SCRIPT_URL}?action=evaluar&user=${encodeURIComponent(usuarioActual)}&nivel=${nivelSeleccionado}&respuestas=${JSON.stringify(respuestas)}`)
+    fetch(`${SCRIPT_URL}?action=evaluar&user=${encodeURIComponent(usuarioActual)}&nivel=${nivelSeleccionado}&respuestas=${JSON.stringify(respuestas)}`, {
+        method: "GET",
+        redirect: "follow"
+    })
     .then(r => r.json())
     .then(data => {
         if (data.correctas === 10) {
@@ -227,6 +242,10 @@ function evaluarQuiz() {
             res.style.color = "red";
             res.innerText = `Obtuviste ${data.correctas}/10 aciertos. Para avanzar debes sacar 100%. Vuelve a leer e inténtalo de nuevo.`;
         }
+    })
+    .catch(() => {
+        res.style.color = "red";
+        res.innerText = "Error al enviar la evaluación a la base de datos.";
     });
 }
 </script>
