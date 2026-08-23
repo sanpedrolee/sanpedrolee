@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANPEDROLEE - Plataforma de Comprensión Lector</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --accent: #f59e0b;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        header { text-align: center; background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .grid-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 30px; }
+        .level-card { background: var(--card); border: 2px solid #cbd5e1; padding: 15px; text-align: center; border-radius: 10px; cursor: pointer; position: relative; font-weight: bold; }
+        .level-card.locked { opacity: 0.5; cursor: not-allowed; background: #e2e8f0; }
+        .level-card.active { border-color: var(--accent); background: #fef3c7; }
+        .badge-icon { font-size: 20px; display: block; margin-top: 5px; }
+        .reading-area, .quiz-area { background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .question { margin-bottom: 20px; padding: 15px; border-left: 4px solid var(--primary); background: #f1f5f9; border-radius: 0 8px 8px 0; }
+        .tag { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 12px; color: white; margin-bottom: 5px; font-weight: bold; }
+        .tag-literal { background: #2563eb; }
+        .tag-inferential { background: #d97706; }
+        .tag-critical { background: #059669; }
+        .options label { display: block; margin: 8px 0; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; }
+        .options input { margin-right: 10px; }
+        button.btn-submit { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; }
+        button.btn-submit:hover { background: #1d4ed8; }
+        .result-box { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 15px; }
+        .success { background: #dcfce7; color: #166534; }
+        .error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>📖 SANPEDROLEE</h1>
+        <p>Plataforma de Comprensión Lector - Nivel Actual: <span id="user-level-display">1</span></p>
+    </header>
+
+    <div class="grid-levels" id="levels-grid"></div>
+
+    <div id="game-area">
+        <div class="reading-area">
+            <h2 id="reading-title">Cargando lectura...</h2>
+            <div id="reading-text"></div>
+        </div>
+
+        <div class="quiz-area">
+            <h3>Cuestionario de Evaluación (10 Preguntas)</h3>
+            <form id="quiz-form"></form>
+            <button class="btn-submit" onclick="evaluarQuiz()">Enviar Respuestas</button>
+            <div id="result-message"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Datos del Nivel 1 (Plantilla configurable)
+const lecturas = {
+    1: {
+        titulo: "Nivel 1: El sueño de San Martín",
+        texto: "El general José de San Martín descansó bajo la sombra de una palmera en las playas de Paracas. En su sueño, contempló una hermosa bandera de colores rojo y blanco que flameaba con orgullo sobre una patria libre y soberana. Al despertar, vio elevarse en el cielo un grupo de parihuanas, aves de pecho blanco y alas rojas, que inspiraron los colores patrios.",
+        preguntas: [
+            // 4 Literales (Obtener información)
+            { tipo: "literal", q: "1. ¿Dónde descansó el general San Martín?", ops: ["En una cueva", "Bajo una palmera en Paracas", "En un barco", "En una plaza"], a: 1 },
+            { tipo: "literal", q: "2. ¿De qué colores era la bandera que vio en su sueño?", ops: ["Azul y blanco", "Rojo y amarillo", "Rojo y blanco", "Verde y rojo"], a: 2 },
+            { tipo: "literal", q: "3. ¿Qué aves vio elevarse al despertar?", ops: ["Flamencos", "Parihuanas", "Águilas", "Gaviotas"], a: 1 },
+            { tipo: "literal", q: "4. ¿Qué parte del cuerpo de la parihuana era de color rojo?", ops: ["El pico", "El pecho", "Las alas", "Las patas"], a: 2 },
+            // 3 Inferenciales (Inferir información)
+            { tipo: "inferential", q: "5. ¿Por qué San Martín se encontraba cansado?", ops: ["Por viajar caminando", "Por la preparación de la campaña libertadora", "Por jugar en la playa", "Por el intenso frío"], a: 1 },
+            { tipo: "inferential", q: "6. ¿Qué simbolizan los colores rojo y blanco reflejados en el sueño?", ops: ["La libertad y la paz de la nueva nación", "La riqueza mineral del país", "La vegetación y el mar", "La guerra entre pueblos"], a: 0 },
+            { tipo: "inferential", q: "7. ¿Qué habría pasado si San Martín no hubiese visto las parihuanas?", ops: ["No habría liberado al Perú", "Los colores de la bandera habrían sido distintos", "Se habría quedado dormido", "No habría llegado a Paracas"], a: 1 },
+            // 3 Criteriales (Reflexionar sobre la información)
+            { tipo: "critical", q: "8. ¿Qué opinas sobre la actitud de San Martín al buscar la libertad del Perú?", ops: ["Fue ejemplar y perseverante", "Fue innecesaria", "Fue una decisión apresurada", "No tuvo importancia"], a: 0 },
+            { tipo: "critical", q: "9. ¿Por qué es importante recordar los símbolos patrios en la escuela?", ops: ["Para aprobar los exámenes", "Para fortalecer nuestra identidad y respeto histórico", "Porque es una obligación sin sentido", "Para decorar las aulas"], a: 1 },
+            { tipo: "critical", q: "10. ¿Crees que los sueños pueden inspirar grandes proyectos reales?", ops: ["Sí, cuando van acompañados de esfuerzo y acción", "No, los sueños no sirven de nada", "Solo si se escriben en papel", "No se puede saber"], a: 0 }
+        ]
+    }
+};
+
+let nivelActual = parseInt(localStorage.getItem('sanpedrolee_nivel')) || 1;
+
+function cargarNiveles() {
+    const grid = document.getElementById('levels-grid');
+    grid.innerHTML = '';
+    document.getElementById('user-level-display').innerText = nivelActual;
+
+    for (let i = 1; i <= 25; i++) {
+        const card = document.createElement('div');
+        let insignia = '';
+        if (i === 5) insignia = '<span class="badge-icon">🥉</span>';
+        if (i === 10) insignia = '<span class="badge-icon">🥈</span>';
+        if (i === 20) insignia = '<span class="badge-icon">🥇</span>';
+        if (i === 25) insignia = '<span class="badge-icon">💎</span>';
+
+        if (i <= nivelActual) {
+            card.className = `level-card ${i === nivelActual ? 'active' : ''}`;
+            card.innerHTML = `Nivel ${i} ${insignia}`;
+            card.onclick = () => cargarLectura(i);
+        } else {
+            card.className = 'level-card locked';
+            card.innerHTML = `Nivel ${i} 🔒 ${insignia}`;
+        }
+        grid.appendChild(card);
+    }
+}
+
+function cargarLectura(nivel) {
+    const data = lecturas[nivel];
+    if (!data) {
+        alert("Este nivel aún está en preparación por el docente.");
+        return;
+    }
+
+    document.getElementById('reading-title').innerText = data.titulo;
+    document.getElementById('reading-text').innerText = data.texto;
+
+    const form = document.getElementById('quiz-form');
+    form.innerHTML = '';
+
+    data.preguntas.forEach((p, idx) => {
+        let tagClass = p.tipo === 'literal' ? 'tag-literal' : (p.tipo === 'inferential' ? 'tag-inferential' : 'tag-critical');
+        let tagText = p.tipo === 'literal' ? 'Obtener Información' : (p.tipo === 'inferential' ? 'Inferir Información' : 'Reflexionar');
+
+        let html = `<div class="question">
+            <span class="tag ${tagClass}">${tagText}</span>
+            <p><strong>${p.q}</strong></p>
+            <div class="options">`;
+
+        p.ops.forEach((op, opIdx) => {
+            html += `<label><input type="radio" name="p${idx}" value="${opIdx}"> ${op}</label>`;
+        });
+
+        html += `</div></div>`;
+        form.innerHTML += html;
+    });
+    document.getElementById('result-message').innerHTML = '';
+}
+
+function evaluarQuiz() {
+    const data = lecturas[nivelActual];
+    if (!data) return;
+
+    let correctas = 0;
+    data.preguntas.forEach((p, idx) => {
+        const selected = document.querySelector(`input[name="p${idx}"]:checked`);
+        if (selected && parseInt(selected.value) === p.a) {
+            correctas++;
+        }
+    });
+
+    const resDiv = document.getElementById('result-message');
+    if (correctas === 10) {
+        resDiv.className = 'result-box success';
+        let mensajeInsignia = "";
+        if (nivelActual === 5) mensajeInsignia = " ¡Has ganado el Sanpedrito de Bronce! 🥉";
+        if (nivelActual === 10) mensajeInsignia = " ¡Has ganado el Sanpedrito de Plata! 🥈";
+        if (nivelActual === 20) mensajeInsignia = " ¡Has ganado el Sanpedrito de Oro! 🥇";
+
+        resDiv.innerHTML = `¡FELICIDADES! Obtuviste 10/10 (100%).${mensajeInsignia} Avanzas al siguiente nivel.`;
+        nivelActual++;
+        localStorage.setItem('sanpedrolee_nivel', nivelActual);
+        setTimeout(() => { cargarNiveles(); }, 2500);
+    } else {
+        resDiv.className = 'result-box error';
+        resDiv.innerHTML = `Obtuviste ${correctas} de 10 respuestas correctas. Recuerda que debes responder el 100% correctamente para avanzar. ¡Vuelve a leer el texto e inténtalo otra vez!`;
+    }
+}
+
+// Inicializar la app
+cargarNiveles();
+cargarLectura(nivelActual <= 25 ? nivelActual : 1);
+</script>
+
+</body>
+</html>
