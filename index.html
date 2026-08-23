@@ -58,9 +58,6 @@
         .level-card.locked { opacity: 0.5; background: #e2e8f0; cursor: not-allowed; }
         .badge-icon { font-size: 20px; display: block; margin-top: 4px; }
 
-        .btn-read-modal { background: #2563eb; color: white; border: none; padding: 16px 20px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3); transition: background 0.2s; }
-        .btn-read-modal:hover { background: #1d4ed8; }
-
         .reading-box { background: #f8fafc; border: 2px dashed #3b82f6; border-radius: 10px; padding: 20px; margin-bottom: 25px; text-align: justify; line-height: 1.8; color: #334155; font-size: 16px; }
 
         .question { text-align: left; margin-bottom: 20px; padding: 18px; border-left: 5px solid var(--primary); background: #f1f5f9; border-radius: 0 10px 10px 0; }
@@ -89,14 +86,8 @@
         <h1>📖 SANPEDROLEE</h1>
         <h3>Plataforma Institucional de Comprensión Lectora</h3>
         <p style="text-align: justify; line-height: 1.6;">
-            ¡Bienvenido a <strong>SANPEDROLEE</strong>! Un espacio diseñado para fortalecer tus habilidades de lectura mediante 25 niveles progresivos:
+            ¡Bienvenido a <strong>SANPEDROLEE</strong>! Un espacio diseñado para fortalecer tus habilidades de lectura mediante 25 niveles progresivos.
         </p>
-        <ul style="text-align: left; line-height: 1.8;">
-            <li>🔹 <strong>4 Preguntas:</strong> Literal</li>
-            <li>🔸 <strong>3 Preguntas:</strong> Inferencial</li>
-            <li>🟢 <strong>3 Preguntas:</strong> Criterial</li>
-        </ul>
-        <p><strong>Regla de avance:</strong> Debes obtener el <strong>100% de respuestas correctas (10/10)</strong> para desbloquear el siguiente nivel.</p>
         <button class="btn-main" onclick="mostrarLogin()">INICIAR SESIÓN</button>
     </div>
 
@@ -116,6 +107,7 @@
         </form>
     </div>
 
+    <!-- PANTALLA PRINCIPAL SOLO MOSTRARÁ LA CABECERA Y LA RETÍCULA DE NIVELES -->
     <div id="app-screen" class="hidden">
         <header>
             <div class="user-info">
@@ -131,39 +123,27 @@
             </div>
         </header>
 
-        <!-- PANTALLA PRINCIPAL SOLO CON NIVELES Y BOTÓN DE ACCESO -->
         <div class="card">
             <h3>Tus Niveles de Lectura</h3>
+            <p style="font-size: 14px; color: #64748b;">Haz clic en un nivel disponible para abrir la lectura y su evaluación.</p>
             <div class="grid-levels" id="levels-grid"></div>
-        </div>
-
-        <div class="card" id="reading-card">
-            <h2 id="quiz-title">Selecciona un nivel</h2>
-            
-            <button id="btn-open-reading" class="btn-read-modal hidden" onclick="abrirModalLectura()">
-                📖 Abrir Lectura y Evaluación del Nivel
-            </button>
-            
-            <div id="result-message-main" style="margin-top:15px; font-weight:bold; color: #64748b;"></div>
         </div>
     </div>
 
 </div>
 
-<!-- VENTANA EMERGENTE (MODAL) EXCLUSIVA PARA TEXTO Y PREGUNTAS -->
+<!-- MODAL EMERGENTE DONDE SE CARGA LA LECTURA Y PREGUNTAS -->
 <div id="reading-modal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 id="modal-reading-title">Título de la Lectura</h2>
+            <h2 id="modal-reading-title">Cargando Nivel...</h2>
             <button class="close-modal" onclick="cerrarModalLectura()">&times;</button>
         </div>
         
-        <!-- Contenido textual -->
         <div class="reading-box" id="modal-reading-text">
-            Cargando lectura...
+            Cargando el texto...
         </div>
 
-        <!-- Formulario con las 10 preguntas -->
         <form id="quiz-form"></form>
 
         <button class="btn-main hidden" id="btn-submit-quiz" onclick="evaluarQuiz()">Enviar Respuestas</button>
@@ -210,7 +190,7 @@ function ejecutarLogin(e) {
     const p = document.getElementById('pass-input').value.trim();
     const msg = document.getElementById('login-msg');
 
-    msg.innerText = "Conectando con la base de datos...";
+    msg.innerText = "Conectando...";
     
     const url = `${SCRIPT_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`;
 
@@ -226,21 +206,18 @@ function ejecutarLogin(e) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             
-            // Asigna el Nombre devuelto de la celda "Estudiante"
             const nombreCompleto = data.nombreEstudiante || u;
             document.getElementById('student-name').innerText = `Estudiante: ${nombreCompleto}`;
-            
             document.getElementById('student-level').innerText = nivelMaximo;
             document.getElementById('student-score').innerText = `${puntajeTotal} pts`;
 
             renderizarNiveles();
-            cargarLectura(nivelSeleccionado);
         } else {
             msg.innerText = data.message || "Usuario o contraseña incorrectos.";
         }
     })
     .catch(() => { 
-        msg.innerText = "Error de conexión con Google Sheets. Revisa la configuración."; 
+        msg.innerText = "Error de conexión con Google Sheets."; 
     });
 }
 
@@ -256,14 +233,12 @@ function renderizarNiveles() {
         if (i === 20) insignia = '<span class="badge-icon">🥇</span>';
         if (i === 25) insignia = '<span class="badge-icon">💎</span>';
 
-        if (i < nivelMaximo) {
-            card.className = 'level-card unlocked';
-            card.innerHTML = `Nivel ${i} ✅ ${insignia}`;
-            card.onclick = () => { nivelSeleccionado = i; cargarLectura(i); };
-        } else if (i === nivelMaximo) {
-            card.className = 'level-card active';
-            card.innerHTML = `Nivel ${i} 🎯 ${insignia}`;
-            card.onclick = () => { nivelSeleccionado = i; cargarLectura(i); };
+        if (i <= nivelMaximo) {
+            const esActivo = (i === nivelMaximo);
+            card.className = esActivo ? 'level-card active' : 'level-card unlocked';
+            card.innerHTML = `Nivel ${i} ${esActivo ? '🎯' : '✅'} ${insignia}`;
+            // Al hacer clic abre el modal directamente
+            card.onclick = () => { abrirYCaragarnivel(i); };
         } else {
             card.className = 'level-card locked';
             card.innerHTML = `Nivel ${i} 🔒 ${insignia}`;
@@ -272,26 +247,26 @@ function renderizarNiveles() {
     }
 }
 
-function cargarLectura(n) {
+function abrirYCaragarnivel(n) {
+    nivelSeleccionado = n;
     const btnSubmit = document.getElementById('btn-submit-quiz');
-    const btnReadModal = document.getElementById('btn-open-reading');
     const form = document.getElementById('quiz-form');
-    document.getElementById('result-message-main').innerText = 'Cargando datos del nivel...';
+    
+    // Abrir modal e indicar carga
+    document.getElementById('modal-reading-title').innerText = `Cargando Nivel ${n}...`;
+    document.getElementById('modal-reading-text').innerText = "Cargando contenido de la lectura...";
+    document.getElementById('result-message').innerText = "";
+    form.innerHTML = "";
+    btnSubmit.classList.add('hidden');
+    
+    abrirModalLectura();
 
     jsonp(`${SCRIPT_URL}?action=getLectura&nivel=${n}`)
     .then(data => {
-        document.getElementById('result-message-main').innerText = '';
-        document.getElementById('result-message').innerText = '';
-        
         if(data.status === "success") {
-            document.getElementById('quiz-title').innerText = `Nivel ${n}: ${data.titulo}`;
-            
-            document.getElementById('modal-reading-title').innerText = `Nivel ${n} - ${data.titulo}`;
+            document.getElementById('modal-reading-title').innerText = `Nivel ${n}: ${data.titulo}`;
             document.getElementById('modal-reading-text').innerText = data.texto;
 
-            btnReadModal.classList.remove('hidden');
-
-            form.innerHTML = '';
             btnSubmit.classList.remove('hidden');
 
             data.preguntas.forEach((p, idx) => {
@@ -306,14 +281,13 @@ function cargarLectura(n) {
                 html += `</div></div>`;
                 form.innerHTML += html;
             });
-
-            abrirModalLectura();
-
         } else {
-            document.getElementById('quiz-title').innerText = `Nivel ${n}`;
-            btnReadModal.classList.add('hidden');
-            document.getElementById('result-message-main').innerText = 'Esta lectura aún está en preparación.';
+            document.getElementById('modal-reading-title').innerText = `Nivel ${n}`;
+            document.getElementById('modal-reading-text').innerText = "Esta lectura aún no está disponible.";
         }
+    })
+    .catch(() => {
+        document.getElementById('modal-reading-text').innerText = "Ocurrió un error al cargar el nivel. Intenta nuevamente.";
     });
 }
 
@@ -348,7 +322,6 @@ function evaluarQuiz() {
             
             if (nivelSeleccionado === nivelMaximo) {
                 nivelMaximo++;
-                nivelSeleccionado = nivelMaximo;
                 puntajeTotal += 100;
                 
                 document.getElementById('student-level').innerText = nivelMaximo;
@@ -358,11 +331,10 @@ function evaluarQuiz() {
             renderizarNiveles();
             setTimeout(() => { 
                 cerrarModalLectura();
-                cargarLectura(nivelSeleccionado); 
             }, 2500);
         } else {
             res.style.color = "red";
-            res.innerText = `Obtuviste ${data.correctas}/10 aciertos. Para avanzar debes sacar 100%. Revisa el texto arriba e inténtalo de nuevo.`;
+            res.innerText = `Obtuviste ${data.correctas}/10 aciertos. Para avanzar debes sacar 100%. Revisa la lectura e inténtalo de nuevo.`;
         }
     });
 }
