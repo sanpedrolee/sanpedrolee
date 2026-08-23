@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANPEDROLEE - Plataforma de Comprensión Lector</title>
+    <title>SANPEDROLEE - Plataforma de Comprensión Lectora</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -14,7 +14,17 @@
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; }
-        header { text-align: center; background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        header { text-align: center; background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; position: relative; }
+        .user-badge { position: absolute; right: 20px; top: 20px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; font-size: 13px; }
+        .btn-logout { background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; margin-left: 10px; }
+        
+        /* Estilos del Login */
+        .login-card { background: var(--card); max-width: 400px; margin: 50px auto; padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); text-align: center; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        
+        /* Estilos del Juego */
         .grid-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 30px; }
         .level-card { background: var(--card); border: 2px solid #cbd5e1; padding: 15px; text-align: center; border-radius: 10px; cursor: pointer; position: relative; font-weight: bold; }
         .level-card.locked { opacity: 0.5; cursor: not-allowed; background: #e2e8f0; }
@@ -28,55 +38,84 @@
         .tag-critical { background: #059669; }
         .options label { display: block; margin: 8px 0; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; }
         .options input { margin-right: 10px; }
-        button.btn-submit { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; }
-        button.btn-submit:hover { background: #1d4ed8; }
+        button.btn-action { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; }
+        button.btn-action:hover { background: #1d4ed8; }
         .result-box { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 15px; }
         .success { background: #dcfce7; color: #166534; }
         .error { background: #fee2e2; color: #991b1b; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>📖 SANPEDROLEE</h1>
-        <p>Plataforma de Comprensión Lector - Nivel Actual: <span id="user-level-display">1</span></p>
-    </header>
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="login-card">
+        <h2>📖 SANPEDROLEE</h2>
+        <p>Ingresa tus credenciales para comenzar</p>
+        <form onsubmit="iniciarSesion(event)">
+            <div class="form-group">
+                <label>Usuario (Estudiante):</label>
+                <input type="text" id="username" placeholder="Ej: pedro" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña:</label>
+                <input type="password" id="password" placeholder="Contraseña" required>
+            </div>
+            <button type="submit" class="btn-action">Ingresar a la Plataforma</button>
+            <p id="login-error" style="color:red; font-size:13px; margin-top:10px;"></p>
+        </form>
+    </div>
 
-    <div class="grid-levels" id="levels-grid"></div>
+    <!-- PANTALLA DE LA PLATAFORMA (OCULTA POR DEFECTO) -->
+    <div id="app-screen" class="hidden">
+        <header>
+            <h1>📖 SANPEDROLEE</h1>
+            <p>Plataforma de Comprensión Lectora - Nivel Actual: <span id="user-level-display">1</span></p>
+            <div class="user-badge">
+                <span id="display-username">Estudiante</span>
+                <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+            </div>
+        </header>
 
-    <div id="game-area">
-        <div class="reading-area">
-            <h2 id="reading-title">Cargando lectura...</h2>
-            <div id="reading-text"></div>
-        </div>
+        <div class="grid-levels" id="levels-grid"></div>
 
-        <div class="quiz-area">
-            <h3>Cuestionario de Evaluación (10 Preguntas)</h3>
-            <form id="quiz-form"></form>
-            <button class="btn-submit" onclick="evaluarQuiz()">Enviar Respuestas</button>
-            <div id="result-message"></div>
+        <div id="game-area">
+            <div class="reading-area">
+                <h2 id="reading-title">Cargando lectura...</h2>
+                <div id="reading-text"></div>
+            </div>
+
+            <div class="quiz-area">
+                <h3>Cuestionario de Evaluación (10 Preguntas)</h3>
+                <form id="quiz-form"></form>
+                <button class="btn-action" onclick="evaluarQuiz()">Enviar Respuestas</button>
+                <div id="result-message"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-// Datos del Nivel 1 (Plantilla configurable)
+// BASE DE DATOS DE USUARIOS Y CONTRASEÑAS PERMITIDOS
+const usuariosPermitidos = {
+    "estudiante1": "12345",
+    "pedro": "2026",
+    "juan": "sanpedro"
+};
+
 const lecturas = {
     1: {
         titulo: "Nivel 1: El sueño de San Martín",
         texto: "El general José de San Martín descansó bajo la sombra de una palmera en las playas de Paracas. En su sueño, contempló una hermosa bandera de colores rojo y blanco que flameaba con orgullo sobre una patria libre y soberana. Al despertar, vio elevarse en el cielo un grupo de parihuanas, aves de pecho blanco y alas rojas, que inspiraron los colores patrios.",
         preguntas: [
-            // 4 Literales (Obtener información)
             { tipo: "literal", q: "1. ¿Dónde descansó el general San Martín?", ops: ["En una cueva", "Bajo una palmera en Paracas", "En un barco", "En una plaza"], a: 1 },
             { tipo: "literal", q: "2. ¿De qué colores era la bandera que vio en su sueño?", ops: ["Azul y blanco", "Rojo y amarillo", "Rojo y blanco", "Verde y rojo"], a: 2 },
             { tipo: "literal", q: "3. ¿Qué aves vio elevarse al despertar?", ops: ["Flamencos", "Parihuanas", "Águilas", "Gaviotas"], a: 1 },
             { tipo: "literal", q: "4. ¿Qué parte del cuerpo de la parihuana era de color rojo?", ops: ["El pico", "El pecho", "Las alas", "Las patas"], a: 2 },
-            // 3 Inferenciales (Inferir información)
             { tipo: "inferential", q: "5. ¿Por qué San Martín se encontraba cansado?", ops: ["Por viajar caminando", "Por la preparación de la campaña libertadora", "Por jugar en la playa", "Por el intenso frío"], a: 1 },
             { tipo: "inferential", q: "6. ¿Qué simbolizan los colores rojo y blanco reflejados en el sueño?", ops: ["La libertad y la paz de la nueva nación", "La riqueza mineral del país", "La vegetación y el mar", "La guerra entre pueblos"], a: 0 },
             { tipo: "inferential", q: "7. ¿Qué habría pasado si San Martín no hubiese visto las parihuanas?", ops: ["No habría liberado al Perú", "Los colores de la bandera habrían sido distintos", "Se habría quedado dormido", "No habría llegado a Paracas"], a: 1 },
-            // 3 Criteriales (Reflexionar sobre la información)
             { tipo: "critical", q: "8. ¿Qué opinas sobre la actitud de San Martín al buscar la libertad del Perú?", ops: ["Fue ejemplar y perseverante", "Fue innecesaria", "Fue una decisión apresurada", "No tuvo importancia"], a: 0 },
             { tipo: "critical", q: "9. ¿Por qué es importante recordar los símbolos patrios en la escuela?", ops: ["Para aprobar los exámenes", "Para fortalecer nuestra identidad y respeto histórico", "Porque es una obligación sin sentido", "Para decorar las aulas"], a: 1 },
             { tipo: "critical", q: "10. ¿Crees que los sueños pueden inspirar grandes proyectos reales?", ops: ["Sí, cuando van acompañados de esfuerzo y acción", "No, los sueños no sirven de nada", "Solo si se escriben en papel", "No se puede saber"], a: 0 }
@@ -84,7 +123,35 @@ const lecturas = {
     }
 };
 
+let usuarioActual = localStorage.getItem('sanpedrolee_user');
 let nivelActual = parseInt(localStorage.getItem('sanpedrolee_nivel')) || 1;
+
+function iniciarSesion(e) {
+    e.preventDefault();
+    const user = document.getElementById('username').value.trim().toLowerCase();
+    const pass = document.getElementById('password').value;
+
+    if (usuariosPermitidos[user] && usuariosPermitidos[user] === pass) {
+        usuarioActual = user;
+        localStorage.setItem('sanpedrolee_user', user);
+        cargarPantallaPrincipal();
+    } else {
+        document.getElementById('login-error').innerText = "Usuario o contraseña incorrectos.";
+    }
+}
+
+function cerrarSesion() {
+    localStorage.removeItem('sanpedrolee_user');
+    location.reload();
+}
+
+function cargarPantallaPrincipal() {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-screen').classList.remove('hidden');
+    document.getElementById('display-username').innerText = usuarioActual;
+    cargarNiveles();
+    cargarLectura(nivelActual <= 25 ? nivelActual : 1);
+}
 
 function cargarNiveles() {
     const grid = document.getElementById('levels-grid');
@@ -173,9 +240,10 @@ function evaluarQuiz() {
     }
 }
 
-// Inicializar la app
-cargarNiveles();
-cargarLectura(nivelActual <= 25 ? nivelActual : 1);
+// Comprobar si ya había iniciado sesión previamente
+if (usuarioActual) {
+    cargarPantallaPrincipal();
+}
 </script>
 
 </body>
