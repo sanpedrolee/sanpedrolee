@@ -26,7 +26,6 @@
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
 
-        /* Panel Superior con Info del Estudiante y Puntaje */
         header { 
             background: linear-gradient(135deg, #1e3a8a, #3b82f6); 
             color: white; 
@@ -50,7 +49,6 @@
 
         .btn-logout { background: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        /* Grid de Niveles */
         .grid-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin: 20px 0; }
         .level-card { background: var(--card); border: 2px solid #cbd5e1; padding: 18px 10px; text-align: center; border-radius: 12px; font-weight: bold; position: relative; transition: transform 0.2s, box-shadow 0.2s; }
         .level-card.unlocked { border-color: #22c55e; background: #f0fdf4; cursor: pointer; }
@@ -60,18 +58,15 @@
         .level-card.locked { opacity: 0.5; background: #e2e8f0; cursor: not-allowed; }
         .badge-icon { font-size: 20px; display: block; margin-top: 4px; }
 
-        /* Botón para Abrir la Lectura Emergente */
         .btn-read-modal { background: #2563eb; color: white; border: none; padding: 14px 20px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 25px; box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3); transition: background 0.2s; }
         .btn-read-modal:hover { background: #1d4ed8; }
 
-        /* Estilos del Cuestionario */
         .question { text-align: left; margin-bottom: 20px; padding: 18px; border-left: 5px solid var(--primary); background: #f1f5f9; border-radius: 0 10px 10px 0; }
         .tag { display: inline-block; font-size: 11px; padding: 4px 10px; border-radius: 12px; color: white; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; }
         .tag-literal { background: #2563eb; } .tag-inferential { background: #d97706; } .tag-critical { background: #059669; }
         .options label { display: block; margin: 8px 0; padding: 12px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; text-align: left; transition: background 0.15s; }
         .options label:hover { background: #e2e8f0; }
 
-        /* Ventana Emergente (Modal) */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-content { background: white; padding: 30px; border-radius: 16px; max-width: 750px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); position: relative; text-align: left; }
@@ -88,23 +83,21 @@
 
 <div class="container">
 
-    <!-- 1. PANTALLA DE BIENVENIDA -->
     <div id="welcome-screen" class="card">
         <h1>📖 SANPEDROLEE</h1>
         <h3>Plataforma Institucional de Comprensión Lectora</h3>
         <p style="text-align: justify; line-height: 1.6;">
-            ¡Bienvenido a <strong>SANPEDROLEE</strong>! Un espacio diseñado para fortalecer tus habilidades de lectura mediante 25 niveles progresivos. Cada nivel cuenta con un texto y un cuestionario de 10 preguntas:
+            ¡Bienvenido a <strong>SANPEDROLEE</strong>! Un espacio diseñado para fortalecer tus habilidades de lectura mediante 25 niveles progresivos:
         </p>
         <ul style="text-align: left; line-height: 1.8;">
-            <li>🔹 <strong>4 Preguntas:</strong> Obtener información (Literal)</li>
-            <li>🔸 <strong>3 Preguntas:</strong> Inferir información (Inferencial)</li>
-            <li>🟢 <strong>3 Preguntas:</strong> Reflexionar sobre el texto (Criterial)</li>
+            <li>🔹 <strong>4 Preguntas:</strong> Literal</li>
+            <li>🔸 <strong>3 Preguntas:</strong> Inferencial</li>
+            <li>🟢 <strong>3 Preguntas:</strong> Criterial</li>
         </ul>
-        <p><strong>Regla de avance:</strong> Debes obtener el <strong>100% de respuestas correctas (10/10)</strong> para desbloquear el siguiente nivel y acumular tus puntos e insignias de <em>Sanpedrito</em>.</p>
+        <p><strong>Regla de avance:</strong> Debes obtener el <strong>100% de respuestas correctas (10/10)</strong> para desbloquear el siguiente nivel.</p>
         <button class="btn-main" onclick="mostrarLogin()">INICIAR SESIÓN</button>
     </div>
 
-    <!-- 2. PANTALLA DE LOGIN -->
     <div id="login-screen" class="card hidden" style="max-width: 400px; margin: 40px auto;">
         <h2>Iniciar Sesión</h2>
         <form onsubmit="ejecutarLogin(event)">
@@ -121,7 +114,6 @@
         </form>
     </div>
 
-    <!-- 3. PLATAFORMA Y NIVELES -->
     <div id="app-screen" class="hidden">
         <header>
             <div class="user-info">
@@ -146,7 +138,7 @@
             <h2 id="quiz-title">Selecciona un nivel</h2>
             
             <button id="btn-open-reading" class="btn-read-modal hidden" onclick="abrirModalLectura()">
-                📖 Haz clic aquí para leer la lectura emergente
+                📖 Haz clic aquí para ver la lectura emergente
             </button>
 
             <form id="quiz-form"></form>
@@ -157,7 +149,6 @@
 
 </div>
 
-<!-- VENTANA EMERGENTE (MODAL) DE LA LECTURA -->
 <div id="reading-modal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
@@ -186,7 +177,7 @@ function jsonp(url) {
         const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
         window[callbackName] = function(data) {
             delete window[callbackName];
-            document.body.removeChild(script);
+            if (document.body.contains(script)) document.body.removeChild(script);
             resolve(data);
         };
 
@@ -194,7 +185,7 @@ function jsonp(url) {
         script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
         script.onerror = function() {
             delete window[callbackName];
-            document.body.removeChild(script);
+            if (document.body.contains(script)) document.body.removeChild(script);
             reject(new Error('Error de conexión'));
         };
         document.body.appendChild(script);
@@ -275,7 +266,7 @@ function cargarLectura(n) {
     const btnSubmit = document.getElementById('btn-submit-quiz');
     const btnReadModal = document.getElementById('btn-open-reading');
     const form = document.getElementById('quiz-form');
-    document.getElementById('result-message').innerText = 'Cargando datos desde la base de datos...';
+    document.getElementById('result-message').innerText = 'Cargando datos...';
 
     jsonp(`${SCRIPT_URL}?action=getLectura&nivel=${n}`)
     .then(data => {
@@ -309,7 +300,7 @@ function cargarLectura(n) {
         } else {
             document.getElementById('quiz-title').innerText = `Nivel ${n}`;
             btnReadModal.classList.add('hidden');
-            form.innerHTML = '<p style="margin: 20px 0;">Esta lectura aún está en preparación por el docente.</p>';
+            form.innerHTML = '<p style="margin: 20px 0;">Esta lectura aún está en preparación.</p>';
             btnSubmit.classList.add('hidden');
         }
     });
@@ -336,7 +327,7 @@ function evaluarQuiz() {
 
     const res = document.getElementById('result-message');
     res.style.color = "blue";
-    res.innerText = "Evaluando respuestas en la base de datos...";
+    res.innerText = "Evaluando respuestas...";
 
     jsonp(`${SCRIPT_URL}?action=evaluar&user=${encodeURIComponent(usuarioActual)}&nivel=${nivelSeleccionado}&respuestas=${JSON.stringify(respuestas)}`)
     .then(data => {
@@ -357,7 +348,7 @@ function evaluarQuiz() {
             setTimeout(() => { cargarLectura(nivelSeleccionado); }, 2500);
         } else {
             res.style.color = "red";
-            res.innerText = `Obtuviste ${data.correctas}/10 aciertos. Para avanzar debes acertar el 100%. Haz clic en el botón azul para repasar la lectura e inténtalo de nuevo.`;
+            res.innerText = `Obtuviste ${data.correctas}/10 aciertos. Para avanzar debes sacar 100%. Haz clic en el botón azul para repasar la lectura.`;
         }
     });
 }
