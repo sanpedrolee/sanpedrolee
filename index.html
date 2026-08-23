@@ -5,158 +5,136 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SANPEDROLEE - Plataforma de Comprensión Lectora</title>
     <style>
-        :root {
-            --primary: #1e3a8a;
-            --accent: #f59e0b;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #1e293b;
-        }
+        :root { --primary: #1e3a8a; --accent: #f59e0b; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; }
-        header { text-align: center; background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; position: relative; }
-        .user-badge { position: absolute; right: 20px; top: 20px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; font-size: 13px; }
-        .btn-logout { background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; margin-left: 10px; }
-        
-        /* Estilos del Login */
-        .login-card { background: var(--card); max-width: 400px; margin: 50px auto; padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); text-align: center; }
-        .form-group { margin-bottom: 15px; text-align: left; }
+        .card { background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
+        .btn-main:hover { background: #1d4ed8; }
+        .form-group { text-align: left; margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-        
-        /* Estilos del Juego */
-        .grid-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 30px; }
-        .level-card { background: var(--card); border: 2px solid #cbd5e1; padding: 15px; text-align: center; border-radius: 10px; cursor: pointer; position: relative; font-weight: bold; }
-        .level-card.locked { opacity: 0.5; cursor: not-allowed; background: #e2e8f0; }
-        .level-card.active { border-color: var(--accent); background: #fef3c7; }
-        .badge-icon { font-size: 20px; display: block; margin-top: 5px; }
-        .reading-area, .quiz-area { background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .question { margin-bottom: 20px; padding: 15px; border-left: 4px solid var(--primary); background: #f1f5f9; border-radius: 0 8px 8px 0; }
+        .grid-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin: 20px 0; }
+        .level-card { background: var(--card); border: 2px solid #cbd5e1; padding: 15px; text-align: center; border-radius: 10px; font-weight: bold; position: relative; }
+        .level-card.unlocked { border-color: #22c55e; background: #f0fdf4; cursor: pointer; }
+        .level-card.active { border-color: var(--accent); background: #fef3c7; cursor: pointer; }
+        .level-card.locked { opacity: 0.5; background: #e2e8f0; cursor: not-allowed; }
+        .badge-icon { font-size: 18px; display: block; }
+        .question { text-align: left; margin-bottom: 20px; padding: 15px; border-left: 4px solid var(--primary); background: #f1f5f9; border-radius: 0 8px 8px 0; }
         .tag { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 12px; color: white; margin-bottom: 5px; font-weight: bold; }
-        .tag-literal { background: #2563eb; }
-        .tag-inferential { background: #d97706; }
-        .tag-critical { background: #059669; }
-        .options label { display: block; margin: 8px 0; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; }
-        .options input { margin-right: 10px; }
-        button.btn-action { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; }
-        button.btn-action:hover { background: #1d4ed8; }
-        .result-box { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 15px; }
-        .success { background: #dcfce7; color: #166534; }
-        .error { background: #fee2e2; color: #991b1b; }
+        .tag-literal { background: #2563eb; } .tag-inferential { background: #d97706; } .tag-critical { background: #059669; }
+        .options label { display: block; margin: 8px 0; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; text-align: left; }
         .hidden { display: none; }
+        header { background: var(--primary); color: white; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- PANTALLA DE LOGIN -->
-    <div id="login-screen" class="login-card">
-        <h2>📖 SANPEDROLEE</h2>
-        <p>Ingresa tus credenciales para comenzar</p>
-        <form onsubmit="iniciarSesion(event)">
+
+    <!-- 1. BIENVENIDA -->
+    <div id="welcome-screen" class="card">
+        <h1>📖 SANPEDROLEE</h1>
+        <h3>Plataforma Institucional de Comprensión Lectora</h3>
+        <p style="text-align: justify; line-height: 1.6;">
+            ¡Bienvenido a <strong>SANPEDROLEE</strong>! Un espacio diseñado para fortalecer tus habilidades de lectura mediante 25 niveles progresivos. Cada nivel cuenta con un texto y un cuestionario de 10 preguntas:
+        </p>
+        <ul style="text-align: left; line-height: 1.8;">
+            <li>🔹 <strong>4 Preguntas:</strong> Obtener información (Literal)</li>
+            <li>🔸 <strong>3 Preguntas:</strong> Inferir información (Inferencial)</li>
+            <li>🟢 <strong>3 Preguntas:</strong> Reflexionar sobre el texto (Criterial)</li>
+        </ul>
+        <p><strong>Regla de avance:</strong> Debes obtener el <strong>100% de respuestas correctas</strong> para desbloquear el siguiente nivel y ganar tus insignias de <em>Sanpedrito</em> (Bronce en nivel 5, Plata en 10, Oro en 20 y Legendario en 25).</p>
+        <button class="btn-main" onclick="mostrarLogin()">INICIAR SESIÓN</button>
+    </div>
+
+    <!-- 2. LOGIN -->
+    <div id="login-screen" class="card hidden" style="max-width: 400px; margin: 40px auto;">
+        <h2>Iniciar Sesión</h2>
+        <form onsubmit="ejecutarLogin(event)">
             <div class="form-group">
-                <label>Usuario (Estudiante):</label>
-                <input type="text" id="username" placeholder="Ej: pedro" required>
+                <label>Usuario / Estudiante:</label>
+                <input type="text" id="user-input" required placeholder="Ej: pedro">
             </div>
             <div class="form-group">
                 <label>Contraseña:</label>
-                <input type="password" id="password" placeholder="Contraseña" required>
+                <input type="password" id="pass-input" required placeholder="••••••••">
             </div>
-            <button type="submit" class="btn-action">Ingresar a la Plataforma</button>
-            <p id="login-error" style="color:red; font-size:13px; margin-top:10px;"></p>
+            <button type="submit" class="btn-main">Ingresar</button>
+            <p id="login-msg" style="color:red; font-size:13px; margin-top:10px;"></p>
         </form>
     </div>
 
-    <!-- PANTALLA DE LA PLATAFORMA (OCULTA POR DEFECTO) -->
+    <!-- 3. PLATAFORMA Y NIVELES -->
     <div id="app-screen" class="hidden">
         <header>
-            <h1>📖 SANPEDROLEE</h1>
-            <p>Plataforma de Comprensión Lectora - Nivel Actual: <span id="user-level-display">1</span></p>
-            <div class="user-badge">
-                <span id="display-username">Estudiante</span>
-                <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+            <div>
+                <h2 style="margin:0;">SANPEDROLEE</h2>
+                <small>Estudiante: <strong id="student-name">...</strong></small>
             </div>
+            <button onclick="location.reload()" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Salir</button>
         </header>
 
-        <div class="grid-levels" id="levels-grid"></div>
+        <div class="card">
+            <h3>Tus Niveles de Lectura</h3>
+            <div class="grid-levels" id="levels-grid"></div>
+        </div>
 
-        <div id="game-area">
-            <div class="reading-area">
-                <h2 id="reading-title">Cargando lectura...</h2>
-                <div id="reading-text"></div>
-            </div>
-
-            <div class="quiz-area">
-                <h3>Cuestionario de Evaluación (10 Preguntas)</h3>
-                <form id="quiz-form"></form>
-                <button class="btn-action" onclick="evaluarQuiz()">Enviar Respuestas</button>
-                <div id="result-message"></div>
-            </div>
+        <div class="card" id="reading-card">
+            <h2 id="reading-title">Selecciona un nivel desbloqueado</h2>
+            <div id="reading-text" style="text-align: justify; line-height: 1.6; margin-bottom:20px;"></div>
+            
+            <form id="quiz-form"></form>
+            <button class="btn-main hidden" id="btn-submit-quiz" onclick="evaluarQuiz()">Enviar Respuestas</button>
+            <div id="result-message" style="margin-top:15px; font-weight:bold;"></div>
         </div>
     </div>
+
 </div>
 
 <script>
-// BASE DE DATOS DE USUARIOS Y CONTRASEÑAS PERMITIDOS
-const usuariosPermitidos = {
-    "estudiante1": "12345",
-    "pedro": "2026",
-    "juan": "sanpedro"
-};
+// PEGA TU URL DE APPS SCRIPT AQUÍ
+const SCRIPT_URL = "URL_DE_TU_GOOGLE_APPS_SCRIPT_AQUI";
 
-const lecturas = {
-    1: {
-        titulo: "Nivel 1: El sueño de San Martín",
-        texto: "El general José de San Martín descansó bajo la sombra de una palmera en las playas de Paracas. En su sueño, contempló una hermosa bandera de colores rojo y blanco que flameaba con orgullo sobre una patria libre y soberana. Al despertar, vio elevarse en el cielo un grupo de parihuanas, aves de pecho blanco y alas rojas, que inspiraron los colores patrios.",
-        preguntas: [
-            { tipo: "literal", q: "1. ¿Dónde descansó el general San Martín?", ops: ["En una cueva", "Bajo una palmera en Paracas", "En un barco", "En una plaza"], a: 1 },
-            { tipo: "literal", q: "2. ¿De qué colores era la bandera que vio en su sueño?", ops: ["Azul y blanco", "Rojo y amarillo", "Rojo y blanco", "Verde y rojo"], a: 2 },
-            { tipo: "literal", q: "3. ¿Qué aves vio elevarse al despertar?", ops: ["Flamencos", "Parihuanas", "Águilas", "Gaviotas"], a: 1 },
-            { tipo: "literal", q: "4. ¿Qué parte del cuerpo de la parihuana era de color rojo?", ops: ["El pico", "El pecho", "Las alas", "Las patas"], a: 2 },
-            { tipo: "inferential", q: "5. ¿Por qué San Martín se encontraba cansado?", ops: ["Por viajar caminando", "Por la preparación de la campaña libertadora", "Por jugar en la playa", "Por el intenso frío"], a: 1 },
-            { tipo: "inferential", q: "6. ¿Qué simbolizan los colores rojo y blanco reflejados en el sueño?", ops: ["La libertad y la paz de la nueva nación", "La riqueza mineral del país", "La vegetación y el mar", "La guerra entre pueblos"], a: 0 },
-            { tipo: "inferential", q: "7. ¿Qué habría pasado si San Martín no hubiese visto las parihuanas?", ops: ["No habría liberado al Perú", "Los colores de la bandera habrían sido distintos", "Se habría quedado dormido", "No habría llegado a Paracas"], a: 1 },
-            { tipo: "critical", q: "8. ¿Qué opinas sobre la actitud de San Martín al buscar la libertad del Perú?", ops: ["Fue ejemplar y perseverante", "Fue innecesaria", "Fue una decisión apresurada", "No tuvo importancia"], a: 0 },
-            { tipo: "critical", q: "9. ¿Por qué es importante recordar los símbolos patrios en la escuela?", ops: ["Para aprobar los exámenes", "Para fortalecer nuestra identidad y respeto histórico", "Porque es una obligación sin sentido", "Para decorar las aulas"], a: 1 },
-            { tipo: "critical", q: "10. ¿Crees que los sueños pueden inspirar grandes proyectos reales?", ops: ["Sí, cuando van acompañados de esfuerzo y acción", "No, los sueños no sirven de nada", "Solo si se escriben en papel", "No se puede saber"], a: 0 }
-        ]
-    }
-};
+let usuarioActual = "";
+let nivelMaximo = 1;
+let nivelSeleccionado = 1;
+https://script.google.com/macros/s/AKfycbwTe0mKi__1SinX1AJfb6NT-P7lS8JIowDdT5XiqZwhRzVT3zt9K5hp9-vym4dGyka7OA/exec
+function mostrarLogin() {
+    document.getElementById('welcome-screen').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+}
 
-let usuarioActual = localStorage.getItem('sanpedrolee_user');
-let nivelActual = parseInt(localStorage.getItem('sanpedrolee_nivel')) || 1;
-
-function iniciarSesion(e) {
+function ejecutarLogin(e) {
     e.preventDefault();
-    const user = document.getElementById('username').value.trim().toLowerCase();
-    const pass = document.getElementById('password').value;
+    const u = document.getElementById('user-input').value.trim();
+    const p = document.getElementById('pass-input').value.trim();
+    const msg = document.getElementById('login-msg');
 
-    if (usuariosPermitidos[user] && usuariosPermitidos[user] === pass) {
-        usuarioActual = user;
-        localStorage.setItem('sanpedrolee_user', user);
-        cargarPantallaPrincipal();
-    } else {
-        document.getElementById('login-error').innerText = "Usuario o contraseña incorrectos.";
-    }
+    msg.innerText = "Conectando con Google Sheets...";
+    
+    fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`)
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "success") {
+            usuarioActual = u;
+            nivelMaximo = parseInt(data.nivel);
+            nivelSeleccionado = nivelMaximo;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('student-name').innerText = u;
+            renderizarNiveles();
+            cargarLectura(nivelSeleccionado);
+        } else {
+            msg.innerText = "Usuario o contraseña incorrectos.";
+        }
+    })
+    .catch(() => { msg.innerText = "Error de conexión."; });
 }
 
-function cerrarSesion() {
-    localStorage.removeItem('sanpedrolee_user');
-    location.reload();
-}
-
-function cargarPantallaPrincipal() {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('app-screen').classList.remove('hidden');
-    document.getElementById('display-username').innerText = usuarioActual;
-    cargarNiveles();
-    cargarLectura(nivelActual <= 25 ? nivelActual : 1);
-}
-
-function cargarNiveles() {
+function renderizarNiveles() {
     const grid = document.getElementById('levels-grid');
     grid.innerHTML = '';
-    document.getElementById('user-level-display').innerText = nivelActual;
 
     for (let i = 1; i <= 25; i++) {
         const card = document.createElement('div');
@@ -166,10 +144,14 @@ function cargarNiveles() {
         if (i === 20) insignia = '<span class="badge-icon">🥇</span>';
         if (i === 25) insignia = '<span class="badge-icon">💎</span>';
 
-        if (i <= nivelActual) {
-            card.className = `level-card ${i === nivelActual ? 'active' : ''}`;
-            card.innerHTML = `Nivel ${i} ${insignia}`;
-            card.onclick = () => cargarLectura(i);
+        if (i < nivelMaximo) {
+            card.className = 'level-card unlocked';
+            card.innerHTML = `Nivel ${i} ✅ ${insignia}`;
+            card.onclick = () => { nivelSeleccionado = i; cargarLectura(i); };
+        } else if (i === nivelMaximo) {
+            card.className = 'level-card active';
+            card.innerHTML = `Nivel ${i} 🎯 ${insignia}`;
+            card.onclick = () => { nivelSeleccionado = i; cargarLectura(i); };
         } else {
             card.className = 'level-card locked';
             card.innerHTML = `Nivel ${i} 🔒 ${insignia}`;
@@ -178,71 +160,74 @@ function cargarNiveles() {
     }
 }
 
-function cargarLectura(nivel) {
-    const data = lecturas[nivel];
-    if (!data) {
-        alert("Este nivel aún está en preparación por el docente.");
-        return;
-    }
-
-    document.getElementById('reading-title').innerText = data.titulo;
-    document.getElementById('reading-text').innerText = data.texto;
-
+function cargarLectura(n) {
+    const btn = document.getElementById('btn-submit-quiz');
     const form = document.getElementById('quiz-form');
-    form.innerHTML = '';
+    document.getElementById('result-message').innerText = 'Cargando texto desde la base de datos...';
 
-    data.preguntas.forEach((p, idx) => {
-        let tagClass = p.tipo === 'literal' ? 'tag-literal' : (p.tipo === 'inferential' ? 'tag-inferential' : 'tag-critical');
-        let tagText = p.tipo === 'literal' ? 'Obtener Información' : (p.tipo === 'inferential' ? 'Inferir Información' : 'Reflexionar');
+    fetch(`${SCRIPT_URL}?action=getLectura&nivel=${n}`)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('result-message').innerText = '';
+        if(data.status === "success") {
+            document.getElementById('reading-title').innerText = data.titulo;
+            document.getElementById('reading-text').innerText = data.texto;
+            form.innerHTML = '';
+            btn.classList.remove('hidden');
 
-        let html = `<div class="question">
-            <span class="tag ${tagClass}">${tagText}</span>
-            <p><strong>${p.q}</strong></p>
-            <div class="options">`;
-
-        p.ops.forEach((op, opIdx) => {
-            html += `<label><input type="radio" name="p${idx}" value="${opIdx}"> ${op}</label>`;
-        });
-
-        html += `</div></div>`;
-        form.innerHTML += html;
+            data.preguntas.forEach((p, idx) => {
+                let tagClass = p.tipo === 'Literal' ? 'tag-literal' : (p.tipo === 'Inferencial' ? 'tag-inferential' : 'tag-critical');
+                let html = `<div class="question">
+                    <span class="tag ${tagClass}">${p.tipo}</span>
+                    <p><strong>${p.q}</strong></p>
+                    <div class="options">`;
+                p.ops.forEach((op, opIdx) => {
+                    html += `<label><input type="radio" name="p${idx}" value="${opIdx}"> ${op}</label>`;
+                });
+                html += `</div></div>`;
+                form.innerHTML += html;
+            });
+        } else {
+            document.getElementById('reading-title').innerText = `Nivel ${n}`;
+            document.getElementById('reading-text').innerText = "Esta lectura aún está en preparación por el docente.";
+            form.innerHTML = '';
+            btn.classList.add('hidden');
+        }
     });
-    document.getElementById('result-message').innerHTML = '';
 }
 
 function evaluarQuiz() {
-    const data = lecturas[nivelActual];
-    if (!data) return;
+    let respuestas = [];
+    for (let i = 0; i < 10; i++) {
+        const sel = document.querySelector(`input[name="p${i}"]:checked`);
+        if (!sel) {
+            alert(`Por favor responde la pregunta ${i + 1}`);
+            return;
+        }
+        respuestas.push(parseInt(sel.value));
+    }
 
-    let correctas = 0;
-    data.preguntas.forEach((p, idx) => {
-        const selected = document.querySelector(`input[name="p${idx}"]:checked`);
-        if (selected && parseInt(selected.value) === p.a) {
-            correctas++;
+    const res = document.getElementById('result-message');
+    res.style.color = "blue";
+    res.innerText = "Evaluando respuestas en el servidor...";
+
+    fetch(`${SCRIPT_URL}?action=evaluar&user=${encodeURIComponent(usuarioActual)}&nivel=${nivelSeleccionado}&respuestas=${JSON.stringify(respuestas)}`)
+    .then(r => r.json())
+    .then(data => {
+        if (data.correctas === 10) {
+            res.style.color = "green";
+            res.innerText = "¡FELICIDADES! 10/10 (100% aciertos). ¡Nivel Aprobado!";
+            if (nivelSeleccionado === nivelMaximo) {
+                nivelMaximo++;
+                nivelSeleccionado = nivelMaximo;
+            }
+            renderizarNiveles();
+            setTimeout(() => { cargarLectura(nivelSeleccionado); }, 2000);
+        } else {
+            res.style.color = "red";
+            res.innerText = `Obtuviste ${data.correctas}/10 aciertos. Para avanzar debes sacar 100%. Vuelve a leer e inténtalo de nuevo.`;
         }
     });
-
-    const resDiv = document.getElementById('result-message');
-    if (correctas === 10) {
-        resDiv.className = 'result-box success';
-        let mensajeInsignia = "";
-        if (nivelActual === 5) mensajeInsignia = " ¡Has ganado el Sanpedrito de Bronce! 🥉";
-        if (nivelActual === 10) mensajeInsignia = " ¡Has ganado el Sanpedrito de Plata! 🥈";
-        if (nivelActual === 20) mensajeInsignia = " ¡Has ganado el Sanpedrito de Oro! 🥇";
-
-        resDiv.innerHTML = `¡FELICIDADES! Obtuviste 10/10 (100%).${mensajeInsignia} Avanzas al siguiente nivel.`;
-        nivelActual++;
-        localStorage.setItem('sanpedrolee_nivel', nivelActual);
-        setTimeout(() => { cargarNiveles(); }, 2500);
-    } else {
-        resDiv.className = 'result-box error';
-        resDiv.innerHTML = `Obtuviste ${correctas} de 10 respuestas correctas. Recuerda que debes responder el 100% correctamente para avanzar. ¡Vuelve a leer el texto e inténtalo otra vez!`;
-    }
-}
-
-// Comprobar si ya había iniciado sesión previamente
-if (usuarioActual) {
-    cargarPantallaPrincipal();
 }
 </script>
 
