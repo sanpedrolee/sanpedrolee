@@ -107,11 +107,11 @@
         </form>
     </div>
 
-    <!-- PANTALLA PRINCIPAL SOLO MOSTRARÁ LA CABECERA Y LA RETÍCULA DE NIVELES -->
+    <!-- PANTALLA PRINCIPAL CON NIVELES -->
     <div id="app-screen" class="hidden">
         <header>
             <div class="user-info">
-                <h2 id="student-name">Estudiante</h2>
+                <h2 id="student-name">Estudiante: </h2>
                 <p>Nivel Actual Alcanzado: <strong id="student-level">1</strong> / 25</p>
             </div>
             <div class="score-badge-container">
@@ -132,7 +132,7 @@
 
 </div>
 
-<!-- MODAL EMERGENTE DONDE SE CARGA LA LECTURA Y PREGUNTAS -->
+<!-- VENTANA EMERGENTE (MODAL) CON LECTURA Y PREGUNTAS -->
 <div id="reading-modal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
@@ -206,8 +206,9 @@ function ejecutarLogin(e) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             
-            const nombreCompleto = data.nombreEstudiante || u;
-            document.getElementById('student-name').innerText = `Estudiante: ${nombreCompleto}`;
+            // Asigna el nombre de la columna D ("Estudiante")
+            const nombreMostrar = data.nombreEstudiante || u;
+            document.getElementById('student-name').innerText = `Estudiante: ${nombreMostrar}`;
             document.getElementById('student-level').innerText = nivelMaximo;
             document.getElementById('student-score').innerText = `${puntajeTotal} pts`;
 
@@ -237,7 +238,6 @@ function renderizarNiveles() {
             const esActivo = (i === nivelMaximo);
             card.className = esActivo ? 'level-card active' : 'level-card unlocked';
             card.innerHTML = `Nivel ${i} ${esActivo ? '🎯' : '✅'} ${insignia}`;
-            // Al hacer clic abre el modal directamente
             card.onclick = () => { abrirYCaragarnivel(i); };
         } else {
             card.className = 'level-card locked';
@@ -252,7 +252,6 @@ function abrirYCaragarnivel(n) {
     const btnSubmit = document.getElementById('btn-submit-quiz');
     const form = document.getElementById('quiz-form');
     
-    // Abrir modal e indicar carga
     document.getElementById('modal-reading-title').innerText = `Cargando Nivel ${n}...`;
     document.getElementById('modal-reading-text').innerText = "Cargando contenido de la lectura...";
     document.getElementById('result-message').innerText = "";
