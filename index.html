@@ -226,7 +226,10 @@ function ejecutarLogin(e) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             
-            document.getElementById('student-name').innerText = `Estudiante: ${u}`;
+            // Asigna el Nombre devuelto de la celda "Estudiante"
+            const nombreCompleto = data.nombreEstudiante || u;
+            document.getElementById('student-name').innerText = `Estudiante: ${nombreCompleto}`;
+            
             document.getElementById('student-level').innerText = nivelMaximo;
             document.getElementById('student-score').innerText = `${puntajeTotal} pts`;
 
