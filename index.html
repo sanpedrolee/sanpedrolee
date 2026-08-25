@@ -438,12 +438,14 @@
             background-color: #1e3a8a;
         }
 
-        /* MODALES CORREGIDOS (LECTURA Y PREGUNTAS) */
+        /* ========================================================
+           MODALES - REGLAS FORZADAS PARA EVITAR TEXTO EN BLANCO
+           ======================================================== */
         .modal-bg {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -451,20 +453,31 @@
         }
 
         .modal-content {
-            background: #ffffff;
-            color: #1e293b !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
             width: 90%;
-            max-width: 700px;
+            max-width: 750px;
             max-height: 85vh;
             overflow-y: auto;
             border-radius: 16px;
             padding: 25px;
             position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        /* Fuerza a que TODO elemento de texto interno sea visible y oscuro */
+        .modal-content *, 
+        #form-preguntas *, 
+        .question-card *, 
+        .option-label {
+            color: #0f172a !important;
         }
 
         #modal-reading-title {
             color: var(--navy-blue) !important;
             margin-top: 0;
+            font-size: 22px;
+            font-weight: bold;
         }
 
         .close-btn {
@@ -473,57 +486,79 @@
             cursor: pointer;
             font-size: 24px;
             font-weight: bold;
-            color: #64748b;
+            color: #64748b !important;
         }
 
         .reading-text {
             border: 2px dashed #93c5fd;
-            padding: 15px;
-            border-radius: 8px;
-            background: #eff6ff;
-            color: #0f172a !important;
+            padding: 18px;
+            border-radius: 10px;
+            background: #f0f7ff !important;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            font-size: 15px;
+        }
+
+        .reading-text * {
+            color: #0f172a !important;
         }
 
         .question-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            color: #1e293b !important;
+            background: #f1f5f9 !important;
+            border: 1px solid #cbd5e1 !important;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 18px;
         }
 
         .question-card p {
-            color: #0f172a !important;
+            font-size: 15px;
+            font-weight: 600;
+            margin: 8px 0 12px 0;
         }
 
         .tag-tipo {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            color: #ffffff !important;
+            color: #ffffff !important; /* Excepción para el texto del tag */
             margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
-        .tag-Literal { background-color: #2563eb; }
-        .tag-Inferencial { background-color: #d97706; }
-        .tag-Criterial { background-color: #059669; }
+        .tag-Literal { background-color: #2563eb !important; }
+        .tag-Inferencial { background-color: #d97706 !important; }
+        .tag-Criterial { background-color: #059669 !important; }
 
         .option-label {
-            display: block;
-            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 8px 12px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
             cursor: pointer;
-            color: #334155 !important;
             font-weight: 500;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .option-label:hover {
+            background: #e2e8f0;
+        }
+
+        .option-label input[type="radio"] {
+            margin: 0;
+            cursor: pointer;
         }
 
         /* POPUP CUSTOM RESULTADOS */
         .popup-card {
-            background: white;
+            background: white !important;
             padding: 30px;
             border-radius: 16px;
             text-align: center;
@@ -532,6 +567,10 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             position: relative;
             z-index: 2001;
+        }
+
+        .popup-card * {
+            color: #1e293b !important;
         }
 
         #fx-canvas {
@@ -703,7 +742,7 @@
         <h2 id="modal-reading-title">Cargando...</h2>
         <div id="modal-reading-text" class="reading-text"></div>
         <form id="form-preguntas"></form>
-        <button id="btn-submit" onclick="enviarRespuestas()" class="hidden" style="margin-top: 15px; background: var(--navy-blue); color: white; padding: 12px; border: none; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer;">Enviar Respuestas</button>
+        <button id="btn-submit" onclick="enviarRespuestas()" class="hidden" style="margin-top: 15px; background: var(--navy-blue); color: white !important; padding: 12px; border: none; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer;">Enviar Respuestas</button>
     </div>
 </div>
 
@@ -711,9 +750,9 @@
 <div id="modal-result" class="modal-bg hidden" style="z-index: 2000;">
     <div id="result-card" class="popup-card">
         <div id="result-icon" style="font-size: 60px; margin-bottom: 10px;">🎉</div>
-        <h2 id="result-title" style="margin: 0 0 10px 0; color: #1e293b;">¡Felicitaciones!</h2>
-        <p id="result-msg" style="color: #64748b; font-size: 16px; margin-bottom: 20px;"></p>
-        <button onclick="cerrarResultModal()" style="background-color: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Continuar</button>
+        <h2 id="result-title" style="margin: 0 0 10px 0;">¡Felicitaciones!</h2>
+        <p id="result-msg" style="font-size: 16px; margin-bottom: 20px;"></p>
+        <button onclick="cerrarResultModal()" style="background-color: #2563eb; color: white !important; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Continuar</button>
     </div>
 </div>
 
@@ -1095,11 +1134,11 @@
 
         if (esExito) {
             icon.innerText = customIcon || "🌟";
-            titleEl.style.color = "#15803d";
+            titleEl.style.setProperty('color', '#15803d', 'important');
             lanzarLuces();
         } else {
             icon.innerText = customIcon || "❌";
-            titleEl.style.color = "#b91c1c";
+            titleEl.style.setProperty('color', '#b91c1c', 'important');
         }
 
         document.getElementById('modal-result').classList.remove('hidden');
