@@ -414,6 +414,7 @@
             margin-bottom: 10px;
             font-weight: bold;
             font-size: 15px;
+            color: var(--navy-blue);
         }
 
         .grid-levels {
@@ -437,7 +438,7 @@
             background-color: #1e3a8a;
         }
 
-        /* MODALES */
+        /* MODALES CORREGIDOS (LECTURA Y PREGUNTAS) */
         .modal-bg {
             position: fixed;
             top: 0; left: 0;
@@ -450,7 +451,8 @@
         }
 
         .modal-content {
-            background: white;
+            background: #ffffff;
+            color: #1e293b !important;
             width: 90%;
             max-width: 700px;
             max-height: 85vh;
@@ -458,6 +460,11 @@
             border-radius: 16px;
             padding: 25px;
             position: relative;
+        }
+
+        #modal-reading-title {
+            color: var(--navy-blue) !important;
+            margin-top: 0;
         }
 
         .close-btn {
@@ -474,6 +481,7 @@
             padding: 15px;
             border-radius: 8px;
             background: #eff6ff;
+            color: #0f172a !important;
             line-height: 1.6;
             margin-bottom: 20px;
         }
@@ -484,6 +492,11 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 15px;
+            color: #1e293b !important;
+        }
+
+        .question-card p {
+            color: #0f172a !important;
         }
 
         .tag-tipo {
@@ -492,7 +505,7 @@
             border-radius: 4px;
             font-size: 12px;
             font-weight: bold;
-            color: white;
+            color: #ffffff !important;
             margin-bottom: 8px;
         }
 
@@ -504,9 +517,11 @@
             display: block;
             margin: 8px 0;
             cursor: pointer;
+            color: #334155 !important;
+            font-weight: 500;
         }
 
-        /* POPUP CUSTOM */
+        /* POPUP CUSTOM RESULTADOS */
         .popup-card {
             background: white;
             padding: 30px;
@@ -653,7 +668,7 @@
             <!-- DASHBOARD DE NIVELES -->
             <div id="sec-main" class="card hidden">
                 <h2 id="welcome-msg" style="color: var(--navy-blue);">Bienvenido</h2>
-                <p>Selecciona tu nivel para comenzar a leer:</p>
+                <p style="color: #475569;">Selecciona tu nivel para comenzar a leer:</p>
                 <div id="tiers-container"></div>
             </div>
 
@@ -720,7 +735,7 @@
         { name: "Gran Maestro Lector 👑", range: [21, 25], awardLevel: 26, icon: "👑" }
     ];
 
-    // VERIFICAR Y RESTAURAR SESIÓN AL RECARGAR O ABRIR LA PÁGINA
+    // VERIFICAR Y RESTAURAR SESIÓN AL RECARGAR
     document.addEventListener('DOMContentLoaded', () => {
         const sesionGuardada = localStorage.getItem('sesionIniciada');
         const userGuardado = localStorage.getItem('usuarioConectado');
@@ -800,7 +815,6 @@
         currentUser = "";
         currentNivel = 1;
 
-        // Limpiar LocalStorage al cerrar sesión
         localStorage.removeItem('sesionIniciada');
         localStorage.removeItem('usuarioConectado');
         localStorage.removeItem('nivelConectado');
@@ -863,7 +877,6 @@
                 currentNivel = parseInt(res.nivel);
                 isLogged = true;
 
-                // GUARDAR ESTADO DE SESIÓN EN NAVEGADOR
                 localStorage.setItem('sesionIniciada', 'true');
                 localStorage.setItem('usuarioConectado', u);
                 localStorage.setItem('nivelConectado', res.nivel);
@@ -1019,7 +1032,6 @@
                         const prevNivel = currentNivel;
                         currentNivel = res.nuevoNivel;
                         
-                        // ACTUALIZAR EL NIVEL GUARDADO EN LOCALSTORAGE
                         localStorage.setItem('nivelConectado', currentNivel);
 
                         actualizarStats();
