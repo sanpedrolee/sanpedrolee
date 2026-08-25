@@ -43,6 +43,7 @@
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             box-sizing: border-box;
+            font-size: 15px;
         }
 
         button {
@@ -86,8 +87,9 @@
             position: absolute;
             top: 15px; right: 20px;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
+            color: #64748b;
         }
 
         .reading-img {
@@ -131,7 +133,7 @@
 
         .option-label {
             display: block;
-            margin: 6px 0;
+            margin: 8px 0;
             cursor: pointer;
         }
     </style>
@@ -139,25 +141,25 @@
 <body>
 
 <div class="container">
-    <!-- PANEL DE LOGIN -->
+    <!-- INICIO DE SESIÓN -->
     <div id="sec-login" class="card">
         <h2>Ingreso a SANPEDROLEE</h2>
-        <label>Usuario:</label>
-        <input type="text" id="user" placeholder="Ingresa tu DNI o usuario">
-        <label>Contraseña:</label>
+        <label for="user">Usuario:</label>
+        <input type="text" id="user" placeholder="Ingresa tu usuario o DNI">
+        <label for="pass">Contraseña:</label>
         <input type="password" id="pass" placeholder="Ingresa tu contraseña">
-        <button onclick="login()">Iniciar Sesión</button>
+        <button id="btn-login" onclick="login()">Iniciar Sesión</button>
     </div>
 
-    <!-- PANEL PRINCIPAL (NIVELES) -->
+    <!-- PANEL DE NIVELES -->
     <div id="sec-main" class="card hidden">
         <h2 id="welcome-msg">Bienvenido</h2>
         <p>Selecciona tu nivel para comenzar:</p>
-        <div id="levels-grid"></div>
+        <div id="levels-grid" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
     </div>
 </div>
 
-<!-- MODAL DE LECTURA -->
+<!-- MODAL DE LECTURA Y PREGUNTAS -->
 <div id="modal-lectura" class="modal-bg hidden">
     <div class="modal-content">
         <span class="close-btn" onclick="cerrarModal()">&times;</span>
@@ -167,16 +169,19 @@
         
         <form id="form-preguntas"></form>
         
-        <button id="btn-submit" onclick="enviarRespuestas()" class="hidden">Enviar Respuestas</button>
+        <button id="btn-submit" onclick="enviarRespuestas()" class="hidden" style="margin-top: 15px;">Enviar Respuestas</button>
     </div>
 </div>
 
 <script>
-    const SCRIPT_URL = "TU_URL_DE_APPS_SCRIPT_AQUI"; // Reemplaza con tu Executable URL
+    // ⚠️ COLOCA AQUÍ LA URL DE TU WEB APP DE GOOGLE APPS SCRIPT
+    const SCRIPT_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
+
     let currentUser = "";
     let currentNivel = 1;
     let preguntasCargadas = [];
 
+    // Función JSONP para consultar la Web App evitando bloqueos
     function jsonp(url) {
         return new Promise((resolve) => {
             const callbackName = 'jp_' + Math.round(100000 * Math.random());
@@ -192,20 +197,33 @@
     }
 
     async function login() {
-        const u = document.getElementById('user').value;
-        const p = document.getElementById('pass').value;
-        if(!u || !p) return alert("Completa los campos");
+        const u = document.getElementById('user').value.trim();
+        const p = document.getElementById('pass').value.trim();
+        const btnLogin = document.getElementById('btn-login');
 
-        const res = await jsonp(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`);
-        if(res.status === "success") {
-            currentUser = u;
-            currentNivel = parseInt(res.nivel);
-            document.getElementById('welcome-msg').innerText = `¡Hola, ${res.nombreEstudiante}!`;
-            document.getElementById('sec-login').classList.add('hidden');
-            document.getElementById('sec-main').classList.remove('hidden');
-            renderNiveles();
-        } else {
-            alert(res.message);
+        if(!u || !p) return alert("Por favor ingresa usuario y contraseña");
+
+        btnLogin.disabled = true;
+        btnLogin.innerText = "Verificando...";
+
+        try {
+            const res = await jsonp(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`);
+            
+            if(res.status === "success") {
+                currentUser = u;
+                currentNivel = parseInt(res.nivel);
+                document.getElementById('welcome-msg').innerText = `¡Hola, ${res.nombreEstudiante}!`;
+                document.getElementById('sec-login').classList.add('hidden');
+                document.getElementById('sec-main').classList.remove('hidden');
+                renderNiveles();
+            } else {
+                alert(res.message);
+            }
+        } catch(e) {
+            alert("Error al conectar con el servidor. Revisa la URL del script.");
+        } finally {
+            btnLogin.disabled = false;
+            btnLogin.innerText = "Iniciar Sesión";
         }
     }
 
@@ -214,12 +232,14 @@
         grid.innerHTML = "";
         for(let i = 1; i <= 10; i++) {
             const btn = document.createElement('button');
-            btn.style.margin = "5px";
-            btn.style.width = "auto";
+            btn.style.width = "calc(20% - 8px)";
+            btn.style.minWidth = "80px";
             btn.innerText = `Nivel ${i}`;
+            
             if(i > currentNivel) {
                 btn.disabled = true;
-                btn.style.opacity = "0.5";
+                btn.style.opacity = "0.4";
+                btn.style.cursor = "not-allowed";
             } else {
                 btn.onclick = () => abrirNivel(i);
             }
@@ -234,42 +254,47 @@
         document.getElementById('form-preguntas').innerHTML = "";
         document.getElementById('btn-submit').classList.add('hidden');
 
-        const data = await jsonp(`${SCRIPT_URL}?action=getLectura&nivel=${n}`);
-        
-        if(data.status === "success") {
-            document.getElementById('modal-reading-title').innerText = `Nivel ${n}: ${data.titulo}`;
+        try {
+            const data = await jsonp(`${SCRIPT_URL}?action=getLectura&nivel=${n}`);
             
-            let htmlContenido = "";
-            if (data.imagen && data.imagen.trim() !== "") {
-                htmlContenido += `<img src="${data.imagen}" class="reading-img" alt="Imagen del texto">`;
-            }
-            htmlContenido += data.texto;
-            document.getElementById('modal-reading-text').innerHTML = htmlContenido;
-
-            preguntasCargadas = data.preguntas;
-            const form = document.getElementById('form-preguntas');
-            
-            preguntasCargadas.forEach((p, idx) => {
-                const qDiv = document.createElement('div');
-                qDiv.className = "question-card";
+            if(data.status === "success") {
+                document.getElementById('modal-reading-title').innerText = `Nivel ${n}: ${data.titulo}`;
                 
-                let optionsHTML = p.ops.map((op, opIdx) => `
-                    <label class="option-label">
-                        <input type="radio" name="q_${idx}" value="${opIdx}"> ${op}
-                    </label>
-                `).join('');
+                let htmlContenido = "";
+                if (data.imagen && data.imagen.trim() !== "") {
+                    htmlContenido += `<img src="${data.imagen}" class="reading-img" alt="Imagen del texto">`;
+                }
+                htmlContenido += data.texto;
+                document.getElementById('modal-reading-text').innerHTML = htmlContenido;
 
-                qDiv.innerHTML = `
-                    <span class="tag-tipo tag-${p.tipo}">${p.tipo}</span>
-                    <p><strong>${idx + 1}. ${p.q}</strong></p>
-                    ${optionsHTML}
-                `;
-                form.appendChild(qDiv);
-            });
+                preguntasCargadas = data.preguntas;
+                const form = document.getElementById('form-preguntas');
+                
+                preguntasCargadas.forEach((p, idx) => {
+                    const qDiv = document.createElement('div');
+                    qDiv.className = "question-card";
+                    
+                    let optionsHTML = p.ops.map((op, opIdx) => `
+                        <label class="option-label">
+                            <input type="radio" name="q_${idx}" value="${opIdx}"> ${op}
+                        </label>
+                    `).join('');
 
-            document.getElementById('btn-submit').classList.remove('hidden');
-        } else {
-            alert(data.message);
+                    qDiv.innerHTML = `
+                        <span class="tag-tipo tag-${p.tipo}">${p.tipo}</span>
+                        <p style="margin: 5px 0 10px 0;"><strong>${idx + 1}. ${p.q}</strong></p>
+                        ${optionsHTML}
+                    `;
+                    form.appendChild(qDiv);
+                });
+
+                document.getElementById('btn-submit').classList.remove('hidden');
+            } else {
+                alert(data.message);
+                cerrarModal();
+            }
+        } catch(e) {
+            alert("Ocurrió un error al cargar la lectura.");
             cerrarModal();
         }
     }
@@ -282,17 +307,28 @@
             respuestas.push(parseInt(selected.value));
         }
 
-        const res = await jsonp(`${SCRIPT_URL}?action=evaluar&user=${encodeURIComponent(currentUser)}&nivel=${currentNivel}&respuestas=${JSON.stringify(respuestas)}`);
-        
-        if(res.status === "success") {
-            if(res.correctas === 5) {
-                alert(`¡Excelente! Respondiste 5/5 correctas. Has desbloqueado el siguiente nivel.`);
-                currentNivel++;
-                renderNiveles();
-            } else {
-                alert(`Obtuviste ${res.correctas}/5 correctas. Debes acertar todas las preguntas para pasar de nivel. ¡Vuelve a intentarlo!`);
+        const btnSub = document.getElementById('btn-submit');
+        btnSub.disabled = true;
+        btnSub.innerText = "Evaluando...";
+
+        try {
+            const res = await jsonp(`${SCRIPT_URL}?action=evaluar&user=${encodeURIComponent(currentUser)}&nivel=${currentNivel}&respuestas=${JSON.stringify(respuestas)}`);
+            
+            if(res.status === "success") {
+                if(res.correctas === 5) {
+                    alert(`¡Excelente! Respondiste 5/5 correctas. Has desbloqueado el siguiente nivel.`);
+                    currentNivel++;
+                    renderNiveles();
+                } else {
+                    alert(`Obtuviste ${res.correctas}/5 correctas. Debes lograr 5/5 para avanzar de nivel. ¡Inténtalo de nuevo!`);
+                }
+                cerrarModal();
             }
-            cerrarModal();
+        } catch(e) {
+            alert("Error al enviar la evaluación.");
+        } finally {
+            btnSub.disabled = false;
+            btnSub.innerText = "Enviar Respuestas";
         }
     }
 
