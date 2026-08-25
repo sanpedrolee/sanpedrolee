@@ -92,15 +92,6 @@
             color: #64748b;
         }
 
-        .reading-img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto 15px auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
         .reading-text {
             border: 2px dashed #93c5fd;
             padding: 15px;
@@ -141,7 +132,6 @@
 <body>
 
 <div class="container">
-    <!-- INICIO DE SESIÓN -->
     <div id="sec-login" class="card">
         <h2>Ingreso a SANPEDROLEE</h2>
         <label for="user">Usuario:</label>
@@ -151,7 +141,6 @@
         <button id="btn-login" onclick="login()">Iniciar Sesión</button>
     </div>
 
-    <!-- PANEL DE NIVELES -->
     <div id="sec-main" class="card hidden">
         <h2 id="welcome-msg">Bienvenido</h2>
         <p>Selecciona tu nivel para comenzar:</p>
@@ -159,7 +148,6 @@
     </div>
 </div>
 
-<!-- MODAL DE LECTURA Y PREGUNTAS -->
 <div id="modal-lectura" class="modal-bg hidden">
     <div class="modal-content">
         <span class="close-btn" onclick="cerrarModal()">&times;</span>
@@ -235,7 +223,7 @@
                 alert(res.message);
             }
         } catch(e) {
-            alert("No se pudo conectar con el servidor. Verifica que el despliegue en Google Apps Script tenga acceso configurado para 'Cualquiera'.");
+            alert("Error al conectar con el servidor.");
         } finally {
             btnLogin.disabled = false;
             btnLogin.innerText = "Iniciar Sesión";
@@ -274,13 +262,7 @@
             
             if(data.status === "success") {
                 document.getElementById('modal-reading-title').innerText = `Nivel ${n}: ${data.titulo}`;
-                
-                let htmlContenido = "";
-                if (data.imagen && data.imagen.trim() !== "") {
-                    htmlContenido += `<img src="${data.imagen}" class="reading-img" alt="Imagen del texto">`;
-                }
-                htmlContenido += data.texto;
-                document.getElementById('modal-reading-text').innerHTML = htmlContenido;
+                document.getElementById('modal-reading-text').innerHTML = data.texto;
 
                 preguntasCargadas = data.preguntas;
                 const form = document.getElementById('form-preguntas');
@@ -309,42 +291,45 @@
                 cerrarModal();
             }
         } catch(e) {
-            alert("Ocurrió un error al cargar la lectura.");
+            alert("Error al cargar la lectura.");
             cerrarModal();
         }
     }
 
     async function enviarRespuestas() {
-        let respuestas = [];
+        let aciertos = 0;
+        
         for(let i = 0; i < preguntasCargadas.length; i++) {
             const selected = document.querySelector(`input[name="q_${i}"]:checked`);
             if(!selected) return alert(`Por favor responde la pregunta ${i + 1}`);
-            respuestas.push(parseInt(selected.value));
+            
+            // Compara el índice marcado con la opción correcta que viene del Apps Script
+            if(parseInt(selected.value) === parseInt(preguntasCargadas[i].correcta)) {
+                aciertos++;
+            }
         }
 
         const btnSub = document.getElementById('btn-submit');
         btnSub.disabled = true;
-        btnSub.innerText = "Evaluando...";
+        btnSub.innerText = "Guardando...";
 
-        try {
-            const res = await jsonp(`${SCRIPT_URL}?action=evaluar&user=${encodeURIComponent(currentUser)}&nivel=${currentNivel}&respuestas=${JSON.stringify(respuestas)}`);
-            
-            if(res.status === "success") {
-                if(res.correctas === 5) {
-                    alert(`¡Excelente! Respondiste 5/5 correctas. Has desbloqueado el siguiente nivel.`);
-                    currentNivel++;
-                    renderNiveles();
-                } else {
-                    alert(`Obtuviste ${res.correctas}/5 correctas. Debes lograr 5/5 para avanzar de nivel. ¡Inténtalo de nuevo!`);
-                }
+        if(aciertos === 5) {
+            try {
+                // Notifica al servidor para subir de nivel
+                await jsonp(`${SCRIPT_URL}?action=subirNivel&user=${encodeURIComponent(currentUser)}&nivel=${currentNivel}`);
+                alert("¡Excelente! Respondiste 5/5 correctas. Has desbloqueado el siguiente nivel.");
+                currentNivel++;
+                renderNiveles();
                 cerrarModal();
+            } catch(e) {
+                alert("Error al actualizar el nivel.");
             }
-        } catch(e) {
-            alert("Error al enviar la evaluación.");
-        } finally {
-            btnSub.disabled = false;
-            btnSub.innerText = "Enviar Respuestas";
+        } else {
+            alert(`Obtuviste ${aciertos}/5 correctas. Debes lograr 5/5 para avanzar de nivel. ¡Inténtalo de nuevo!`);
         }
+
+        btnSub.disabled = false;
+        btnSub.innerText = "Enviar Respuestas";
     }
 
     function cerrarModal() {
