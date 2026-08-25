@@ -22,7 +22,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -61,6 +61,37 @@
 
         button:hover { background-color: var(--primary-hover); }
 
+        /* NIVELES Y RANGOS */
+        .tier-block {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .tier-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .grid-levels {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .btn-level {
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+        /* MODALES */
         .modal-bg {
             position: fixed;
             top: 0; left: 0;
@@ -102,7 +133,8 @@
         }
 
         .question-card {
-            background: #f1f5f9;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 15px;
@@ -128,13 +160,13 @@
             cursor: pointer;
         }
 
-        /* ESTILOS PARA POPUPS CUSTOM */
+        /* POPUP CUSTOM */
         .popup-card {
             background: white;
             padding: 30px;
             border-radius: 16px;
             text-align: center;
-            max-width: 400px;
+            max-width: 420px;
             width: 85%;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             position: relative;
@@ -147,17 +179,13 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        .shake {
-            animation: shake 0.4s ease-in-out;
-        }
-
+        .shake { animation: shake 0.4s ease-in-out; }
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-10px); }
             40%, 80% { transform: translateX(10px); }
         }
 
-        /* CANVAS DE FUEGOS ARTIFICIALES */
         #fx-canvas {
             position: fixed;
             top: 0; left: 0;
@@ -183,8 +211,8 @@
 
     <div id="sec-main" class="card hidden">
         <h2 id="welcome-msg">Bienvenido</h2>
-        <p>Selecciona tu nivel para comenzar:</p>
-        <div id="levels-grid" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+        <p>Avanza nivel por nivel para obtener los trofeos e insignias:</p>
+        <div id="tiers-container"></div>
     </div>
 </div>
 
@@ -193,22 +221,19 @@
     <div class="modal-content">
         <span class="close-btn" onclick="cerrarModal()">&times;</span>
         <h2 id="modal-reading-title">Cargando...</h2>
-        
         <div id="modal-reading-text" class="reading-text"></div>
-        
         <form id="form-preguntas"></form>
-        
         <button id="btn-submit" onclick="enviarRespuestas()" class="hidden" style="margin-top: 15px;">Enviar Respuestas</button>
     </div>
 </div>
 
-<!-- POPUP DE RESULTADO -->
+<!-- POPUP DE RESULTADO Y TROFEOS -->
 <div id="modal-result" class="modal-bg hidden" style="z-index: 2000;">
     <div id="result-card" class="popup-card">
-        <div id="result-icon" style="font-size: 50px; margin-bottom: 10px;">🎉</div>
+        <div id="result-icon" style="font-size: 60px; margin-bottom: 10px;">🎉</div>
         <h2 id="result-title" style="margin: 0 0 10px 0; color: #1e293b;">¡Felicitaciones!</h2>
-        <p id="result-msg" style="color: #64748b; font-size: 16px; margin-bottom: 20px;">Has respondido todo correctamente.</p>
-        <button onclick="cerrarResultModal()" style="background-color: #2563eb;">Aceptar</button>
+        <p id="result-msg" style="color: #64748b; font-size: 16px; margin-bottom: 20px;"></p>
+        <button onclick="cerrarResultModal()" style="background-color: #2563eb;">Continuar</button>
     </div>
 </div>
 
@@ -220,6 +245,14 @@
     let nivelEnCurso = 1;
     let preguntasCargadas = [];
     let animationFrameId;
+
+    const TIERS = [
+        { name: "Sanpedrito de Bronce 🥉", range: [1, 5], awardLevel: 6, icon: "🥉" },
+        { name: "Sanpedrito de Plata 🥈", range: [6, 10], awardLevel: 11, icon: "🥈" },
+        { name: "Sanpedrito de Oro 🥇", range: [11, 15], awardLevel: 16, icon: "🥇" },
+        { name: "San Pedro Legendario 💎", range: [16, 20], awardLevel: 21, icon: "💎" },
+        { name: "Gran Maestro Lector 👑", range: [21, 25], awardLevel: 26, icon: "👑" }
+    ];
 
     function jsonp(url, timeoutMs = 12000) {
         return new Promise((resolve, reject) => {
@@ -245,7 +278,7 @@
             script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
             script.onerror = () => {
                 cleanUp();
-                reject(new Error("Error de red al conectar con el servidor"));
+                reject(new Error("Error de conexión"));
             };
 
             document.body.appendChild(script);
@@ -257,7 +290,7 @@
         const p = document.getElementById('pass').value.trim();
         const btnLogin = document.getElementById('btn-login');
 
-        if(!u || !p) return mostrarAlerta("Atención", "Por favor ingresa usuario y contraseña", false);
+        if(!u || !p) return mostrarAlerta("Atención", "Ingresa tu usuario y contraseña", false);
 
         btnLogin.disabled = true;
         btnLogin.innerText = "Verificando...";
@@ -284,23 +317,43 @@
     }
 
     function renderNiveles() {
-        const grid = document.getElementById('levels-grid');
-        grid.innerHTML = "";
-        for(let i = 1; i <= 10; i++) {
-            const btn = document.createElement('button');
-            btn.style.width = "calc(20% - 8px)";
-            btn.style.minWidth = "80px";
-            btn.innerText = `Nivel ${i}`;
-            
-            if(i > currentNivel) {
-                btn.disabled = true;
-                btn.style.opacity = "0.4";
-                btn.style.cursor = "not-allowed";
-            } else {
-                btn.onclick = () => abrirNivel(i);
+        const container = document.getElementById('tiers-container');
+        container.innerHTML = "";
+
+        TIERS.forEach(tier => {
+            const block = document.createElement('div');
+            block.className = "tier-block";
+
+            const isCompleted = currentNivel >= tier.awardLevel;
+            const header = document.createElement('div');
+            header.className = "tier-header";
+            header.innerHTML = `
+                <span>Rango: ${tier.name}</span>
+                <span>${isCompleted ? "¡DESBLOQUEADO! " + tier.icon : "En progreso"}</span>
+            `;
+            block.appendChild(header);
+
+            const grid = document.createElement('div');
+            grid.className = "grid-levels";
+
+            for(let i = tier.range[0]; i <= tier.range[1]; i++) {
+                const btn = document.createElement('button');
+                btn.className = "btn-level";
+                btn.innerText = `Nivel ${i}`;
+
+                if(i > currentNivel) {
+                    btn.disabled = true;
+                    btn.style.opacity = "0.35";
+                    btn.style.cursor = "not-allowed";
+                } else {
+                    btn.onclick = () => abrirNivel(i);
+                }
+                grid.appendChild(btn);
             }
-            grid.appendChild(btn);
-        }
+
+            block.appendChild(grid);
+            container.appendChild(block);
+        });
     }
 
     async function abrirNivel(n) {
@@ -355,7 +408,7 @@
         
         for(let i = 0; i < preguntasCargadas.length; i++) {
             const selected = document.querySelector(`input[name="q_${i}"]:checked`);
-            if(!selected) return mostrarAlerta("Pregunta pendiente", `Por favor responde la pregunta ${i + 1}`, false);
+            if(!selected) return mostrarAlerta("Pregunta pendiente", `Responde la pregunta ${i + 1}`, false);
             
             if(parseInt(selected.value) === parseInt(preguntasCargadas[i].correcta)) {
                 aciertos++;
@@ -372,33 +425,60 @@
                 
                 if (res.status === "success") {
                     if (res.subio) {
+                        const prevNivel = currentNivel;
                         currentNivel = res.nuevoNivel;
-                        mostrarAlerta("¡FELICITACIONES!", "¡Respondiste 5/5 correctas! Has desbloqueado el siguiente nivel.", true);
+                        
+                        // Verificación de Logro Especial por Rango
+                        let trophyMsg = checkTrophyUnlocked(prevNivel, currentNivel);
+                        
+                        if (trophyMsg) {
+                            mostrarAlerta(trophyMsg.title, trophyMsg.msg, true, trophyMsg.icon);
+                        } else {
+                            mostrarAlerta("¡EXCELENTE!", "¡Aprobaste con 5/5! Desbloqueaste el siguiente nivel.", true, "🌟");
+                        }
                     } else {
-                        mostrarAlerta("¡EXCELENTE TRABAJO!", "Respondiste 5/5 correctas. Ya habías completado este nivel previamente.", true);
+                        mostrarAlerta("¡MUY BIEN!", "Obtuviste 5/5 correctas. Ya habías completado este nivel anteriormente.", true, "👏");
                     }
                     renderNiveles();
                     cerrarModal();
                 } else {
-                    mostrarAlerta("Error", res.message || "Error al registrar el nivel.", false);
+                    mostrarAlerta("Error", res.message || "Error al actualizar nivel.", false);
                 }
             } catch(e) {
-                mostrarAlerta("Error", "Error al actualizar el nivel.", false);
+                mostrarAlerta("Error", "Error de comunicación con la base de datos.", false);
             }
         } else {
-            mostrarAlerta("¡VUELVE A INTENTAR!", `Obtuviste ${aciertos}/5 correctas. Necesitas 5/5 para avanzar. ¡Tú puedes!`, false);
+            mostrarAlerta("¡VUELVE A INTENTAR!", `Obtuviste ${aciertos}/5 correctas. Necesitas 5/5 para avanzar.`, false, "❌");
         }
 
         btnSub.disabled = false;
         btnSub.innerText = "Enviar Respuestas";
     }
 
+    function checkTrophyUnlocked(oldN, newN) {
+        if (oldN === 5 && newN === 6) {
+            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Felicidades! Has obtenido la medalla: SANPEDRITO DE BRONCE 🥉", icon: "🥉" };
+        }
+        if (oldN === 10 && newN === 11) {
+            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Increíble! Has obtenido la medalla: SANPEDRITO DE PLATA 🥈", icon: "🥈" };
+        }
+        if (oldN === 15 && newN === 16) {
+            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Soberbio! Has obtenido la medalla: SANPEDRITO DE ORO 🥇", icon: "🥇" };
+        }
+        if (oldN === 20 && newN === 21) {
+            return { title: "¡LOGRO LEGENDARIO!", msg: "¡Espectacular! Te has convertido en: SAN PEDRO LEGENDARIO 💎", icon: "💎" };
+        }
+        if (oldN === 25 && newN === 26) {
+            return { title: "¡MÁXIMO GALARDÓN!", msg: "¡Alcanzaste la cima! Te has proclamado: GRAN MAESTRO LECTOR 👑", icon: "👑" };
+        }
+        return null;
+    }
+
     function cerrarModal() {
         document.getElementById('modal-lectura').classList.add('hidden');
     }
 
-    /* POPUPS & EFECTOS DE LUCES ARTIFICIALES */
-    function mostrarAlerta(titulo, mensaje, esExito) {
+    function mostrarAlerta(titulo, mensaje, esExito, customIcon) {
         const card = document.getElementById('result-card');
         const icon = document.getElementById('result-icon');
         const titleEl = document.getElementById('result-title');
@@ -408,12 +488,12 @@
         msgEl.innerText = mensaje;
 
         if (esExito) {
-            icon.innerText = "🌟";
+            icon.innerText = customIcon || "🌟";
             titleEl.style.color = "#15803d";
             card.classList.remove('shake');
             lanzarLuces();
         } else {
-            icon.innerText = "❌";
+            icon.innerText = customIcon || "❌";
             titleEl.style.color = "#b91c1c";
             card.classList.add('shake');
         }
@@ -426,7 +506,6 @@
         detenerLuces();
     }
 
-    /* SISTEMA DE LUCES Y FUEGOS ARTIFICIALES */
     function lanzarLuces() {
         const canvas = document.getElementById('fx-canvas');
         canvas.classList.remove('hidden');
@@ -435,14 +514,14 @@
         canvas.height = window.innerHeight;
 
         let particles = [];
-        const colors = ['#ff0055', '#00e5ff', '#ffbe0b', '#8338ec', '#3a86ff', '#00ff66'];
+        const colors = ['#ff0055', '#00e5ff', '#ffbe0b', '#8338ec', '#3a86ff', '#00ff66', '#ffd700'];
 
-        for (let i = 0; i < 120; i++) {
+        for (let i = 0; i < 150; i++) {
             particles.push({
                 x: canvas.width / 2,
                 y: canvas.height / 2,
-                dx: (Math.random() - 0.5) * 12,
-                dy: (Math.random() - 0.5) * 12,
+                dx: (Math.random() - 0.5) * 14,
+                dy: (Math.random() - 0.5) * 14,
                 size: Math.random() * 6 + 2,
                 color: colors[Math.floor(Math.random() * colors.length)],
                 alpha: 1
@@ -454,7 +533,7 @@
             particles.forEach((p, idx) => {
                 p.x += p.dx;
                 p.y += p.dy;
-                p.alpha -= 0.015;
+                p.alpha -= 0.012;
                 ctx.globalAlpha = Math.max(p.alpha, 0);
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
