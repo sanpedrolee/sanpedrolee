@@ -11,6 +11,7 @@
             --bg: #f8fafc;
             --card-bg: #ffffff;
             --text: #1e293b;
+            --gold: #f59e0b;
         }
 
         body {
@@ -21,9 +22,69 @@
             padding: 20px;
         }
 
-        .container {
-            max-width: 900px;
+        .layout-wrapper {
+            display: flex;
+            gap: 20px;
+            max-width: 1100px;
             margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        .main-content {
+            flex: 1;
+        }
+
+        /* PANEL LATERAL DERECHO */
+        .sidebar-stats {
+            width: 260px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar-stats h3 {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .stat-box .title {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .stat-box .value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #0f172a;
+            margin-top: 4px;
+        }
+
+        .coins-box {
+            background: #fef3c7;
+            border-color: #fde68a;
+        }
+
+        .coins-box .value {
+            color: #b45309;
         }
 
         .card {
@@ -76,7 +137,7 @@
             align-items: center;
             margin-bottom: 10px;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
         }
 
         .grid-levels {
@@ -193,26 +254,60 @@
             pointer-events: none;
             z-index: 2000;
         }
+
+        @media (max-width: 768px) {
+            .layout-wrapper {
+                flex-direction: column-reverse;
+            }
+            .sidebar-stats {
+                width: 100%;
+                position: static;
+                box-sizing: border-box;
+            }
+        }
     </style>
 </head>
 <body>
 
 <canvas id="fx-canvas" class="hidden"></canvas>
 
-<div class="container">
-    <div id="sec-login" class="card">
-        <h2>Ingreso a SANPEDROLEE</h2>
-        <label for="user">Usuario:</label>
-        <input type="text" id="user" placeholder="Ingresa tu usuario o DNI">
-        <label for="pass">Contraseña:</label>
-        <input type="password" id="pass" placeholder="Ingresa tu contraseña">
-        <button id="btn-login" onclick="login()">Iniciar Sesión</button>
+<div class="layout-wrapper">
+    <!-- PANEL PRINCIPAL -->
+    <div class="main-content">
+        <div id="sec-login" class="card">
+            <h2>Ingreso a SANPEDROLEE</h2>
+            <label for="user">Usuario:</label>
+            <input type="text" id="user" placeholder="Ingresa tu usuario o DNI">
+            <label for="pass">Contraseña:</label>
+            <input type="password" id="pass" placeholder="Ingresa tu contraseña">
+            <button id="btn-login" onclick="login()">Iniciar Sesión</button>
+        </div>
+
+        <div id="sec-main" class="card hidden">
+            <h2 id="welcome-msg">Bienvenido</h2>
+            <p>Selecciona tu nivel para comenzar a leer:</p>
+            <div id="tiers-container"></div>
+        </div>
     </div>
 
-    <div id="sec-main" class="card hidden">
-        <h2 id="welcome-msg">Bienvenido</h2>
-        <p>Avanza nivel por nivel para obtener los trofeos e insignias:</p>
-        <div id="tiers-container"></div>
+    <!-- PANEL LATERAL DERECHO DE ESTADÍSTICAS -->
+    <div id="sidebar-stats" class="sidebar-stats hidden">
+        <h3>MI PROGRESO</h3>
+        
+        <div class="stat-box">
+            <div class="title">Nivel Actual</div>
+            <div id="stat-level" class="value">1</div>
+        </div>
+
+        <div class="stat-box coins-box">
+            <div class="title">Monedas Ganadas</div>
+            <div id="stat-coins" class="value">🪙 0</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="title">Rango</div>
+            <div id="stat-rank" class="value" style="font-size: 16px; margin-top: 6px;">Novato 🐣</div>
+        </div>
     </div>
 </div>
 
@@ -227,7 +322,7 @@
     </div>
 </div>
 
-<!-- POPUP DE RESULTADO Y TROFEOS -->
+<!-- POPUP RESULTADO Y TROFEOS -->
 <div id="modal-result" class="modal-bg hidden" style="z-index: 2000;">
     <div id="result-card" class="popup-card">
         <div id="result-icon" style="font-size: 60px; margin-bottom: 10px;">🎉</div>
@@ -304,6 +399,9 @@
                 document.getElementById('welcome-msg').innerText = `¡Hola, ${res.nombreEstudiante}!`;
                 document.getElementById('sec-login').classList.add('hidden');
                 document.getElementById('sec-main').classList.remove('hidden');
+                document.getElementById('sidebar-stats').classList.remove('hidden');
+                
+                actualizarStats();
                 renderNiveles();
             } else {
                 mostrarAlerta("Error", res.message, false);
@@ -314,6 +412,25 @@
             btnLogin.disabled = false;
             btnLogin.innerText = "Iniciar Sesión";
         }
+    }
+
+    function actualizarStats() {
+        // Cada nivel completado otorga 5 monedas
+        const nivelesCompletados = currentNivel - 1;
+        const monedas = nivelesCompletados * 5;
+
+        document.getElementById('stat-level').innerText = currentNivel;
+        document.getElementById('stat-coins').innerText = `🪙 ${monedas}`;
+
+        // Obtener nombre del rango según el nivel actual
+        let rango = "Iniciante 🐣";
+        if (currentNivel >= 26) rango = "Gran Maestro 👑";
+        else if (currentNivel >= 21) rango = "Legendario 💎";
+        else if (currentNivel >= 16) rango = "Oro 🥇";
+        else if (currentNivel >= 11) rango = "Plata 🥈";
+        else if (currentNivel >= 6) rango = "Bronce 🥉";
+
+        document.getElementById('stat-rank').innerText = rango;
     }
 
     function renderNiveles() {
@@ -428,16 +545,17 @@
                         const prevNivel = currentNivel;
                         currentNivel = res.nuevoNivel;
                         
-                        // Verificación de Logro Especial por Rango
+                        actualizarStats();
+
                         let trophyMsg = checkTrophyUnlocked(prevNivel, currentNivel);
                         
                         if (trophyMsg) {
                             mostrarAlerta(trophyMsg.title, trophyMsg.msg, true, trophyMsg.icon);
                         } else {
-                            mostrarAlerta("¡EXCELENTE!", "¡Aprobaste con 5/5! Desbloqueaste el siguiente nivel.", true, "🌟");
+                            mostrarAlerta("¡EXCELENTE!", "¡Aprobaste con 5/5! Desbloqueaste el siguiente nivel y ganaste +5 Monedas 🪙.", true, "🪙");
                         }
                     } else {
-                        mostrarAlerta("¡MUY BIEN!", "Obtuviste 5/5 correctas. Ya habías completado este nivel anteriormente.", true, "👏");
+                        mostrarAlerta("¡MUY BIEN!", "Obtuviste 5/5 correctas. Ya habías completado este nivel previamente.", true, "👏");
                     }
                     renderNiveles();
                     cerrarModal();
@@ -445,10 +563,10 @@
                     mostrarAlerta("Error", res.message || "Error al actualizar nivel.", false);
                 }
             } catch(e) {
-                mostrarAlerta("Error", "Error de comunicación con la base de datos.", false);
+                mostrarAlerta("Error", "Error de comunicación con el servidor.", false);
             }
         } else {
-            mostrarAlerta("¡VUELVE A INTENTAR!", `Obtuviste ${aciertos}/5 correctas. Necesitas 5/5 para avanzar.`, false, "❌");
+            mostrarAlerta("¡VUELVE A INTENTAR!", `Obtuviste ${aciertos}/5 correctas. Necesitas 5/5 para avanzar y ganar tus 5 monedas.`, false, "❌");
         }
 
         btnSub.disabled = false;
@@ -457,19 +575,19 @@
 
     function checkTrophyUnlocked(oldN, newN) {
         if (oldN === 5 && newN === 6) {
-            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Felicidades! Has obtenido la medalla: SANPEDRITO DE BRONCE 🥉", icon: "🥉" };
+            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Felicidades! Has obtenido el rango: SANPEDRITO DE BRONCE 🥉 (+5 Monedas)", icon: "🥉" };
         }
         if (oldN === 10 && newN === 11) {
-            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Increíble! Has obtenido la medalla: SANPEDRITO DE PLATA 🥈", icon: "🥈" };
+            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Increíble! Has obtenido el rango: SANPEDRITO DE PLATA 🥈 (+5 Monedas)", icon: "🥈" };
         }
         if (oldN === 15 && newN === 16) {
-            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Soberbio! Has obtenido la medalla: SANPEDRITO DE ORO 🥇", icon: "🥇" };
+            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Soberbio! Has obtenido el rango: SANPEDRITO DE ORO 🥇 (+5 Monedas)", icon: "🥇" };
         }
         if (oldN === 20 && newN === 21) {
-            return { title: "¡LOGRO LEGENDARIO!", msg: "¡Espectacular! Te has convertido en: SAN PEDRO LEGENDARIO 💎", icon: "💎" };
+            return { title: "¡LOGRO LEGENDARIO!", msg: "¡Espectacular! Te has convertido en: SAN PEDRO LEGENDARIO 💎 (+5 Monedas)", icon: "💎" };
         }
         if (oldN === 25 && newN === 26) {
-            return { title: "¡MÁXIMO GALARDÓN!", msg: "¡Alcanzaste la cima! Te has proclamado: GRAN MAESTRO LECTOR 👑", icon: "👑" };
+            return { title: "¡MÁXIMO GALARDÓN!", msg: "¡Alcanzaste la cima! Te has proclamado: GRAN MAESTRO LECTOR 👑 (+5 Monedas)", icon: "👑" };
         }
         return null;
     }
