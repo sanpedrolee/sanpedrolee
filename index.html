@@ -39,10 +39,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-        }
-
-        .nav-logo img {
-            height: 50px;
+            cursor: pointer;
         }
 
         .brand-title {
@@ -109,6 +106,14 @@
 
         .btn-nav-login:hover {
             background-color: #1e3a8a;
+        }
+
+        .btn-nav-logout {
+            background-color: var(--red-brand) !important;
+        }
+
+        .btn-nav-logout:hover {
+            background-color: #b91c1c !important;
         }
 
         /* LAYOUT PRINCIPAL */
@@ -222,10 +227,13 @@
 
         .hero-illustration img {
             width: 100%;
-            border-radius: 16px;
+            max-height: 380px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
-        /* TARJETAS DE CARACTERÍSTICAS INFERIORES */
+        /* TARJETAS INFERIORES */
         .bottom-features {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -292,8 +300,9 @@
             gap: 10px;
         }
 
-        .quote-text strong {
+        .quote-text span {
             color: var(--yellow-brand);
+            font-size: 24px;
         }
 
         .school-footer-badge {
@@ -533,7 +542,7 @@
 
 <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
 <header class="navbar">
-    <div class="nav-logo">
+    <div class="nav-logo" onclick="volverAInicio()">
         <div class="brand-title">
             SAN PEDRO<br><span>LEE</span><span class="plus">+</span>
             <div class="brand-slogan">Lee hoy, transforma tu mañana</div>
@@ -541,12 +550,12 @@
     </div>
     <ul class="nav-menu">
         <li><a class="nav-link active" onclick="volverAInicio()">🏠 Inicio</a></li>
-        <li><a class="nav-link" onclick="irAlLogin()">📊 Niveles de lectura</a></li>
+        <li><a class="nav-link" onclick="clickNivelesMenu()">📊 Niveles de lectura</a></li>
         <li><a class="nav-link" onclick="mostrarInfo('Biblioteca')">📖 Biblioteca</a></li>
         <li><a class="nav-link" onclick="mostrarInfo('Retos')">🏆 Retos</a></li>
         <li><a class="nav-link" onclick="mostrarInfo('Comunidad')">👥 Comunidad</a></li>
     </ul>
-    <button class="btn-nav-login" onclick="irAlLogin()">👤 Iniciar sesión</button>
+    <button id="btn-sesion-nav" class="btn-nav-login" onclick="gestionarSesionNav()">👤 Iniciar sesión</button>
 </header>
 
 <div class="container">
@@ -576,11 +585,11 @@
                             </div>
                         </div>
 
-                        <button class="btn-hero-start" onclick="irAlLogin()">EMPEZAR A LEER NOW →</button>
+                        <button class="btn-hero-start" onclick="irAlLogin()">EMPEZAR A LEER AHORA →</button>
                     </div>
 
                     <div class="hero-illustration">
-                        <img src="jovenes.png" alt="Estudiantes Leyendo">
+                        <img src="estudiantes.jpg" alt="Estudiantes Leyendo" onerror="this.src='https://img.freepik.com/vector-gratis/estudiantes-leyendo-libros-juntos_23-2148596611.jpg'">
                     </div>
                 </div>
 
@@ -630,7 +639,7 @@
                 </div>
             </div>
 
-            <!-- FORMULARIO DE LOGIN (OCULTO AL INICIO) -->
+            <!-- FORMULARIO DE LOGIN -->
             <div id="sec-login" class="card hidden">
                 <h2 style="color: var(--navy-blue); margin-top:0;">Ingreso a SAN PEDRO LEE+</h2>
                 <label for="user"><strong>Usuario o DNI:</strong></label>
@@ -641,7 +650,7 @@
                 <button onclick="volverAInicio()" style="background: none; color: #64748b; border: none; margin-top: 15px; text-decoration: underline; cursor: pointer; width: 100%;">← Volver al inicio</button>
             </div>
 
-            <!-- DASHBOARD DE NIVELES (OCULTO AL INICIO) -->
+            <!-- DASHBOARD DE NIVELES -->
             <div id="sec-main" class="card hidden">
                 <h2 id="welcome-msg" style="color: var(--navy-blue);">Bienvenido</h2>
                 <p>Selecciona tu nivel para comenzar a leer:</p>
@@ -650,7 +659,7 @@
 
         </div>
 
-        <!-- PANEL LATERAL DERECHO DE ESTADÍSTICAS (OCULTO AL INICIO) -->
+        <!-- PANEL LATERAL DERECHO DE ESTADÍSTICAS -->
         <div id="sidebar-stats" class="sidebar-stats hidden">
             <h3>MI PROGRESO</h3>
             
@@ -701,6 +710,7 @@
     let nivelEnCurso = 1;
     let preguntasCargadas = [];
     let animationFrameId;
+    let isLogged = false;
 
     const TIERS = [
         { name: "Sanpedrito de Bronce 🥉", range: [1, 5], awardLevel: 6, icon: "🥉" },
@@ -710,16 +720,63 @@
         { name: "Gran Maestro Lector 👑", range: [21, 25], awardLevel: 26, icon: "👑" }
     ];
 
+    function actualizarBotonNavegacion() {
+        const btn = document.getElementById('btn-sesion-nav');
+        if (isLogged) {
+            btn.innerHTML = "🚪 Cerrar sesión";
+            btn.classList.add('btn-nav-logout');
+        } else {
+            btn.innerHTML = "👤 Iniciar sesión";
+            btn.classList.remove('btn-nav-logout');
+        }
+    }
+
+    function gestionarSesionNav() {
+        if (isLogged) {
+            cerrarSesion();
+        } else {
+            irAlLogin();
+        }
+    }
+
     function irAlLogin() {
-        document.getElementById('sec-welcome').classList.add('hidden');
-        document.getElementById('sec-main').classList.add('hidden');
-        document.getElementById('sec-login').classList.remove('hidden');
+        if (isLogged) {
+            document.getElementById('sec-welcome').classList.add('hidden');
+            document.getElementById('sec-login').classList.add('hidden');
+            document.getElementById('sec-main').classList.remove('hidden');
+            document.getElementById('sidebar-stats').classList.remove('hidden');
+        } else {
+            document.getElementById('sec-welcome').classList.add('hidden');
+            document.getElementById('sec-main').classList.add('hidden');
+            document.getElementById('sec-login').classList.remove('hidden');
+            document.getElementById('sidebar-stats').classList.add('hidden');
+        }
+    }
+
+    function clickNivelesMenu() {
+        if (isLogged) {
+            document.getElementById('sec-welcome').classList.add('hidden');
+            document.getElementById('sec-login').classList.add('hidden');
+            document.getElementById('sec-main').classList.remove('hidden');
+            document.getElementById('sidebar-stats').classList.remove('hidden');
+        } else {
+            irAlLogin();
+        }
     }
 
     function volverAInicio() {
         document.getElementById('sec-login').classList.add('hidden');
         document.getElementById('sec-main').classList.add('hidden');
         document.getElementById('sec-welcome').classList.remove('hidden');
+        document.getElementById('sidebar-stats').classList.add('hidden');
+    }
+
+    function cerrarSesion() {
+        isLogged = false;
+        currentUser = "";
+        currentNivel = 1;
+        actualizarBotonNavegacion();
+        volverAInicio();
     }
 
     function mostrarInfo(seccion) {
@@ -773,6 +830,10 @@
             if(res.status === "success") {
                 currentUser = u;
                 currentNivel = parseInt(res.nivel);
+                isLogged = true;
+
+                actualizarBotonNavegacion();
+
                 document.getElementById('welcome-msg').innerText = `¡Hola, ${res.nombreEstudiante}!`;
                 document.getElementById('sec-login').classList.add('hidden');
                 document.getElementById('sec-welcome').classList.add('hidden');
