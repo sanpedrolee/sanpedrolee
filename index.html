@@ -432,20 +432,15 @@
             border: none;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s, opacity 0.2s;
         }
 
-        .btn-level:hover:not(:disabled) {
+        .btn-level:hover {
             background-color: #1e3a8a;
         }
 
-        .btn-level:disabled {
-            background-color: #94a3b8;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
-        /* MODALES */
+        /* ========================================================
+           MODALES - REGLAS FORZADAS PARA EVITAR TEXTO EN BLANCO
+           ======================================================== */
         .modal-bg {
             position: fixed;
             top: 0; left: 0;
@@ -470,6 +465,7 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
 
+        /* Fuerza a que TODO elemento de texto interno sea visible y oscuro */
         .modal-content *, 
         #form-preguntas *, 
         .question-card *, 
@@ -527,7 +523,7 @@
             border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
-            color: #ffffff !important;
+            color: #ffffff !important; /* Excepción para el texto del tag */
             margin-bottom: 8px;
             text-transform: uppercase;
         }
@@ -971,9 +967,13 @@
             const block = document.createElement('div');
             block.className = "tier-block";
 
+            const isCompleted = currentNivel >= tier.awardLevel;
             const header = document.createElement('div');
             header.className = "tier-header";
-            header.innerHTML = `<span>${tier.name}</span><span>Niveles ${tier.range[0]} - ${tier.range[1]}</span>`;
+            header.innerHTML = `
+                <span>Rango: ${tier.name}</span>
+                <span>${isCompleted ? "¡DESBLOQUEADO! " + tier.icon : "En progreso"}</span>
+            `;
             block.appendChild(header);
 
             const grid = document.createElement('div');
@@ -984,14 +984,13 @@
                 btn.className = "btn-level";
                 btn.innerText = `Nivel ${i}`;
 
-                if (i <= currentNivel) {
-                    btn.disabled = false;
-                    btn.onclick = () => abrirLectura(i);
-                } else {
+                if(i > currentNivel) {
                     btn.disabled = true;
-                    btn.title = "Completa el nivel anterior para desbloquear";
+                    btn.style.opacity = "0.35";
+                    btn.style.cursor = "not-allowed";
+                } else {
+                    btn.onclick = () => abrirNivel(i);
                 }
-
                 grid.appendChild(btn);
             }
 
@@ -1000,164 +999,206 @@
         });
     }
 
-    async function abrirLectura(nivel) {
-        nivelEnCurso = nivel;
+    async function abrirNivel(n) {
+        nivelEnCurso = n;
         document.getElementById('modal-lectura').classList.remove('hidden');
-        document.getElementById('modal-reading-title').innerText = `Cargando Nivel ${nivel}...`;
-        document.getElementById('modal-reading-text').innerText = "Cargando texto de la lectura...";
+        document.getElementById('modal-reading-title').innerText = "Cargando lectura...";
+        document.getElementById('modal-reading-text').innerHTML = "";
         document.getElementById('form-preguntas').innerHTML = "";
         document.getElementById('btn-submit').classList.add('hidden');
 
         try {
-            const res = await jsonp(`${SCRIPT_URL}?action=getLectura&nivel=${nivel}`);
-            if (res.status === "success") {
-                document.getElementById('modal-reading-title').innerText = `Nivel ${nivel}: ${res.lectura.titulo}`;
-                document.getElementById('modal-reading-text').innerHTML = res.lectura.texto;
-                preguntasCargadas = res.lectura.preguntas;
-                renderPreguntas(res.lectura.preguntas);
+            const data = await jsonp(`${SCRIPT_URL}?action=getLectura&nivel=${n}`);
+            
+            if(data.status === "success") {
+                document.getElementById('modal-reading-title').innerText = `Nivel ${n}: ${data.titulo}`;
+                document.getElementById('modal-reading-text').innerHTML = data.texto;
+
+                preguntasCargadas = data.preguntas;
+                const form = document.getElementById('form-preguntas');
+                
+                preguntasCargadas.forEach((p, idx) => {
+                    const qDiv = document.createElement('div');
+                    qDiv.className = "question-card";
+                    
+                    let optionsHTML = p.ops.map((op, opIdx) => `
+                        <label class="option-label">
+                            <input type="radio" name="q_${idx}" value="${opIdx}"> ${op}
+                        </label>
+                    `).join('');
+
+                    qDiv.innerHTML = `
+                        <span class="tag-tipo tag-${p.tipo || 'Literal'}">${p.tipo || 'Literal'}</span>
+                        <p style="margin: 5px 0 10px 0;"><strong>${idx + 1}. ${p.q}</strong></p>
+                        ${optionsHTML}
+                    `;
+                    form.appendChild(qDiv);
+                });
+
                 document.getElementById('btn-submit').classList.remove('hidden');
             } else {
-                document.getElementById('modal-reading-text').innerText = "Error: " + res.message;
+                mostrarAlerta("Error", data.message, false);
+                cerrarModal();
             }
         } catch(e) {
-            document.getElementById('modal-reading-text').innerText = "Error al obtener la lectura del servidor.";
+            mostrarAlerta("Error", "Error al cargar la lectura.", false);
+            cerrarModal();
         }
-    }
-
-    function renderPreguntas(preguntas) {
-        const form = document.getElementById('form-preguntas');
-        form.innerHTML = "";
-
-        preguntas.forEach((q, idx) => {
-            const card = document.createElement('div');
-            card.className = "question-card";
-
-            const tag = document.createElement('span');
-            tag.className = `tag-tipo tag-${q.tipo || 'Literal'}`;
-            tag.innerText = q.tipo || 'Pregunta';
-            card.appendChild(tag);
-
-            const p = document.createElement('p');
-            p.innerText = `${idx + 1}. ${q.pregunta}`;
-            card.appendChild(p);
-
-            q.opciones.forEach(opt => {
-                const label = document.createElement('label');
-                label.className = "option-label";
-
-                const radio = document.createElement('input');
-                radio.type = "radio";
-                radio.name = `p_${idx}`;
-                radio.value = opt;
-
-                label.appendChild(radio);
-                label.appendChild(document.createTextNode(opt));
-                card.appendChild(label);
-            });
-
-            form.appendChild(card);
-        });
     }
 
     async function enviarRespuestas() {
-        const respuestas = [];
+        let aciertos = 0;
+        
         for(let i = 0; i < preguntasCargadas.length; i++) {
-            const selected = document.querySelector(`input[name="p_${i}"]:checked`);
-            if(!selected) {
-                return alert(`Por favor, responde la pregunta ${i + 1}`);
-            }
-            respuestas.push(selected.value);
-        }
-
-        const btnSubmit = document.getElementById('btn-submit');
-        btnSubmit.disabled = true;
-        btnSubmit.innerText = "Evaluando...";
-
-        try {
-            const payload = encodeURIComponent(JSON.stringify(respuestas));
-            const res = await jsonp(`${SCRIPT_URL}?action=submitLectura&user=${encodeURIComponent(currentUser)}&nivel=${nivelEnCurso}&respuestas=${payload}`);
+            const selected = document.querySelector(`input[name="q_${i}"]:checked`);
+            if(!selected) return mostrarAlerta("Pregunta pendiente", `Responde la pregunta ${i + 1}`, false);
             
-            cerrarModal();
-
-            if (res.status === "success") {
-                if (res.aprobado) {
-                    if (res.nuevoNivel && res.nuevoNivel > currentNivel) {
-                        currentNivel = res.nuevoNivel;
-                        localStorage.setItem('nivelConectado', currentNivel);
-                        actualizarStats();
-                        renderNiveles();
-                    }
-                    lanzarConfeti();
-                    mostrarAlerta("¡Excelente Trabajo! 🎉", `Aprobaste con ${res.puntaje}/${res.total}. ¡Has ganado monedas y desbloqueado nuevos avances!`, true);
-                } else {
-                    mostrarAlerta("Sigue Intentándolo 💪", `Obtuviste ${res.puntaje}/${res.total}. Necesitas responder correctamente para avanzar. ¡Vuelve a leer con atención!`, false);
-                }
-            } else {
-                mostrarAlerta("Error", res.message, false);
+            if(parseInt(selected.value) === parseInt(preguntasCargadas[i].correcta)) {
+                aciertos++;
             }
-        } catch(e) {
-            mostrarAlerta("Error", "Ocurrió un error al enviar tus respuestas.", false);
-        } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "Enviar Respuestas";
         }
+
+        const btnSub = document.getElementById('btn-submit');
+        btnSub.disabled = true;
+        btnSub.innerText = "Guardando...";
+
+        if(aciertos === 5) {
+            try {
+                const res = await jsonp(`${SCRIPT_URL}?action=subirNivel&user=${encodeURIComponent(currentUser)}&nivel=${nivelEnCurso}`);
+                
+                if (res.status === "success") {
+                    if (res.subio) {
+                        const prevNivel = currentNivel;
+                        currentNivel = res.nuevoNivel;
+                        
+                        localStorage.setItem('nivelConectado', currentNivel);
+
+                        actualizarStats();
+
+                        let trophyMsg = checkTrophyUnlocked(prevNivel, currentNivel);
+                        
+                        if (trophyMsg) {
+                            mostrarAlerta(trophyMsg.title, trophyMsg.msg, true, trophyMsg.icon);
+                        } else {
+                            mostrarAlerta("¡EXCELENTE!", "¡Aprobaste con 5/5! Desbloqueaste el siguiente nivel y ganaste +5 Monedas 🪙.", true, "🪙");
+                        }
+                    } else {
+                        mostrarAlerta("¡MUY BIEN!", "Obtuviste 5/5 correctas. Ya habías completado este nivel previamente.", true, "👏");
+                    }
+                    renderNiveles();
+                    cerrarModal();
+                } else {
+                    mostrarAlerta("Error", res.message || "Error al actualizar nivel.", false);
+                }
+            } catch(e) {
+                mostrarAlerta("Error", "Error de comunicación con el servidor.", false);
+            }
+        } else {
+            mostrarAlerta("¡VUELVE A INTENTAR!", `Obtuviste ${aciertos}/5 correctas. Necesitas 5/5 para avanzar y ganar tus 5 monedas.`, false, "❌");
+        }
+
+        btnSub.disabled = false;
+        btnSub.innerText = "Enviar Respuestas";
+    }
+
+    function checkTrophyUnlocked(oldN, newN) {
+        if (oldN === 5 && newN === 6) {
+            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Felicidades! Has obtenido el rango: SANPEDRITO DE BRONCE 🥉 (+5 Monedas)", icon: "🥉" };
+        }
+        if (oldN === 10 && newN === 11) {
+            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Increíble! Has obtenido el rango: SANPEDRITO DE PLATA 🥈 (+5 Monedas)", icon: "🥈" };
+        }
+        if (oldN === 15 && newN === 16) {
+            return { title: "¡LOGRO DESBLOQUEADO!", msg: "¡Soberbio! Has obtenido el rango: SANPEDRITO DE ORO 🥇 (+5 Monedas)", icon: "🥇" };
+        }
+        if (oldN === 20 && newN === 21) {
+            return { title: "¡LOGRO LEGENDARIO!", msg: "¡Espectacular! Te has convertido en: SAN PEDRO LEGENDARIO 💎 (+5 Monedas)", icon: "💎" };
+        }
+        if (oldN === 25 && newN === 26) {
+            return { title: "¡MÁXIMO GALARDÓN!", msg: "¡Alcanzaste la cima! Te has proclamado: GRAN MAESTRO LECTOR 👑 (+5 Monedas)", icon: "👑" };
+        }
+        return null;
     }
 
     function cerrarModal() {
         document.getElementById('modal-lectura').classList.add('hidden');
     }
 
-    function mostrarAlerta(titulo, mensaje, exito) {
-        document.getElementById('result-icon').innerText = exito ? "🎉" : "💡";
-        document.getElementById('result-title').innerText = titulo;
-        document.getElementById('result-msg').innerText = mensaje;
+    function mostrarAlerta(titulo, mensaje, esExito, customIcon) {
+        const icon = document.getElementById('result-icon');
+        const titleEl = document.getElementById('result-title');
+        const msgEl = document.getElementById('result-msg');
+        
+        titleEl.innerText = titulo;
+        msgEl.innerText = mensaje;
+
+        if (esExito) {
+            icon.innerText = customIcon || "🌟";
+            titleEl.style.setProperty('color', '#15803d', 'important');
+            lanzarLuces();
+        } else {
+            icon.innerText = customIcon || "❌";
+            titleEl.style.setProperty('color', '#b91c1c', 'important');
+        }
+
         document.getElementById('modal-result').classList.remove('hidden');
     }
 
     function cerrarResultModal() {
         document.getElementById('modal-result').classList.add('hidden');
-        detenerConfeti();
+        detenerLuces();
     }
 
-    /* EFECTO DE CONFETI */
-    function lanzarConfeti() {
+    function lanzarLuces() {
         const canvas = document.getElementById('fx-canvas');
         canvas.classList.remove('hidden');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const particles = [];
-        const colors = ['#d9252a', '#f59e0b', '#2563eb', '#10b981', '#8b5cf6'];
+        let particles = [];
+        const colors = ['#ff0055', '#00e5ff', '#ffbe0b', '#8338ec', '#3a86ff', '#00ff66', '#ffd700'];
 
-        for(let i = 0; i < 100; i++) {
+        for (let i = 0; i < 150; i++) {
             particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                dx: (Math.random() - 0.5) * 14,
+                dy: (Math.random() - 0.5) * 14,
+                size: Math.random() * 6 + 2,
                 color: colors[Math.floor(Math.random() * colors.length)],
-                size: Math.random() * 8 + 4,
-                speedY: Math.random() * 3 + 2,
-                speedX: Math.random() * 2 - 1
+                alpha: 1
             });
         }
 
-        function render() {
+        function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.y += p.speedY;
-                p.x += p.speedX;
+            particles.forEach((p, idx) => {
+                p.x += p.dx;
+                p.y += p.dy;
+                p.alpha -= 0.012;
+                ctx.globalAlpha = Math.max(p.alpha, 0);
                 ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (p.alpha <= 0) particles.splice(idx, 1);
             });
-            animationFrameId = requestAnimationFrame(render);
+
+            if (particles.length > 0) {
+                animationFrameId = requestAnimationFrame(animate);
+            } else {
+                detenerLuces();
+            }
         }
-        render();
+        animate();
     }
 
-    function detenerConfeti() {
+    function detenerLuces() {
         const canvas = document.getElementById('fx-canvas');
         canvas.classList.add('hidden');
-        if(animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
     }
 </script>
 </body>
