@@ -133,7 +133,7 @@
             flex: 1;
         }
 
-        /* HERO SECTION - PANTALLA INICIAL */
+        /* HERO SECTION */
         .hero-banner {
             background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
             border-radius: 24px;
@@ -720,6 +720,30 @@
         { name: "Gran Maestro Lector 👑", range: [21, 25], awardLevel: 26, icon: "👑" }
     ];
 
+    // VERIFICAR Y RESTAURAR SESIÓN AL RECARGAR O ABRIR LA PÁGINA
+    document.addEventListener('DOMContentLoaded', () => {
+        const sesionGuardada = localStorage.getItem('sesionIniciada');
+        const userGuardado = localStorage.getItem('usuarioConectado');
+        const nivelGuardado = localStorage.getItem('nivelConectado');
+        const nombreGuardado = localStorage.getItem('nombreEstudiante');
+
+        if (sesionGuardada === 'true' && userGuardado) {
+            isLogged = true;
+            currentUser = userGuardado;
+            currentNivel = parseInt(nivelGuardado) || 1;
+
+            actualizarBotonNavegacion();
+            document.getElementById('welcome-msg').innerText = `¡Hola, ${nombreGuardado || currentUser}!`;
+            document.getElementById('sec-welcome').classList.add('hidden');
+            document.getElementById('sec-login').classList.add('hidden');
+            document.getElementById('sec-main').classList.remove('hidden');
+            document.getElementById('sidebar-stats').classList.remove('hidden');
+
+            actualizarStats();
+            renderNiveles();
+        }
+    });
+
     function actualizarBotonNavegacion() {
         const btn = document.getElementById('btn-sesion-nav');
         if (isLogged) {
@@ -775,6 +799,13 @@
         isLogged = false;
         currentUser = "";
         currentNivel = 1;
+
+        // Limpiar LocalStorage al cerrar sesión
+        localStorage.removeItem('sesionIniciada');
+        localStorage.removeItem('usuarioConectado');
+        localStorage.removeItem('nivelConectado');
+        localStorage.removeItem('nombreEstudiante');
+
         actualizarBotonNavegacion();
         volverAInicio();
     }
@@ -831,6 +862,12 @@
                 currentUser = u;
                 currentNivel = parseInt(res.nivel);
                 isLogged = true;
+
+                // GUARDAR ESTADO DE SESIÓN EN NAVEGADOR
+                localStorage.setItem('sesionIniciada', 'true');
+                localStorage.setItem('usuarioConectado', u);
+                localStorage.setItem('nivelConectado', res.nivel);
+                localStorage.setItem('nombreEstudiante', res.nombreEstudiante || u);
 
                 actualizarBotonNavegacion();
 
@@ -982,6 +1019,9 @@
                         const prevNivel = currentNivel;
                         currentNivel = res.nuevoNivel;
                         
+                        // ACTUALIZAR EL NIVEL GUARDADO EN LOCALSTORAGE
+                        localStorage.setItem('nivelConectado', currentNivel);
+
                         actualizarStats();
 
                         let trophyMsg = checkTrophyUnlocked(prevNivel, currentNivel);
