@@ -5,339 +5,300 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SANPEDROLEE - Plataforma de Comprensión Lectora</title>
     <style>
-        :root { 
-            --primary: #1e3a8a; 
-            --accent: #f59e0b; 
-            --bg: #f8fafc; 
-            --card: #ffffff; 
-            --text: #1e293b; 
-            --danger: #ef4444;
+        :root {
+            --primary: #1e3a8a;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
         }
-        
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 950px; margin: 0 auto; }
-        
-        .card { background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
-        .btn-main { background: var(--primary); color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; transition: background 0.2s; }
-        .btn-main:hover { background: #1d4ed8; }
-        
-        .form-group { text-align: left; margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
 
-        header { 
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6); 
-            color: white; 
-            padding: 20px 25px; 
-            border-radius: 14px; 
-            margin-bottom: 25px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
         }
-        
-        .user-info { text-align: left; }
-        .user-info h2 { margin: 0 0 5px 0; font-size: 22px; }
-        .user-info p { margin: 0; font-size: 14px; opacity: 0.9; }
 
-        .score-badge-container { display: flex; align-items: center; gap: 20px; }
-        .score-box { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); padding: 8px 18px; border-radius: 10px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.3); }
-        .score-box .score-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; }
-        .score-box .score-value { font-size: 22px; font-weight: bold; color: #fef08a; }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-        .btn-logout { background: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-
-        .grid-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin: 20px 0; }
-        .level-card { background: var(--card); border: 2px solid #cbd5e1; padding: 18px 10px; text-align: center; border-radius: 12px; font-weight: bold; position: relative; transition: transform 0.2s, box-shadow 0.2s; }
-        .level-card.unlocked { border-color: #22c55e; background: #f0fdf4; cursor: pointer; }
-        .level-card.unlocked:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2); }
-        .level-card.active { border-color: var(--accent); background: #fef3c7; cursor: pointer; }
-        .level-card.active:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2); }
-        .level-card.locked { opacity: 0.5; background: #e2e8f0; cursor: not-allowed; }
-        .badge-icon { font-size: 20px; display: block; margin-top: 4px; }
-
-        .reading-box { background: #f8fafc; border: 2px dashed #3b82f6; border-radius: 10px; padding: 20px; margin-bottom: 25px; text-align: justify; line-height: 1.8; color: #334155; font-size: 16px; }
-
-        .question { text-align: left; margin-bottom: 20px; padding: 18px; border-left: 5px solid var(--primary); background: #f1f5f9; border-radius: 0 10px 10px 0; }
-        .tag { display: inline-block; font-size: 11px; padding: 4px 10px; border-radius: 12px; color: white; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; }
-        .tag-literal { background: #2563eb; } .tag-inferential { background: #d97706; } .tag-critical { background: #059669; }
-        .options label { display: block; margin: 8px 0; padding: 12px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; text-align: left; transition: background 0.15s; }
-        .options label:hover { background: #e2e8f0; }
-
-        /* Modal integral */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal-content { background: white; padding: 30px; border-radius: 16px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); position: relative; text-align: left; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; }
-        .modal-header h2 { margin: 0; color: var(--primary); font-size: 22px; }
-        .close-modal { background: #f1f5f9; border: none; font-size: 22px; font-weight: bold; color: #64748b; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .close-modal:hover { background: #e2e8f0; color: var(--danger); }
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
 
         .hidden { display: none !important; }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: var(--primary-hover); }
+
+        .modal-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 20px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .reading-img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto 15px auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .reading-text {
+            border: 2px dashed #93c5fd;
+            padding: 15px;
+            border-radius: 8px;
+            background: #eff6ff;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .question-card {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tag-tipo {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .tag-Literal { background-color: #2563eb; }
+        .tag-Inferencial { background-color: #d97706; }
+        .tag-Criterial { background-color: #059669; }
+
+        .option-label {
+            display: block;
+            margin: 6px 0;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-
-    <div id="welcome-screen" class="card">
-        <h1>📖 SANPEDROLEE</h1>
-        <h3>Plataforma Institucional de Comprensión Lectora</h3>
-        <p style="text-align: justify; line-height: 1.6;">
-            ¡Bienvenido a <strong>SANPEDROLEE</strong>! Un espacio diseñado para fortalecer tus habilidades de lectura mediante 25 niveles progresivos.
-        </p>
-        <button class="btn-main" onclick="mostrarLogin()">INICIAR SESIÓN</button>
+    <!-- PANEL DE LOGIN -->
+    <div id="sec-login" class="card">
+        <h2>Ingreso a SANPEDROLEE</h2>
+        <label>Usuario:</label>
+        <input type="text" id="user" placeholder="Ingresa tu DNI o usuario">
+        <label>Contraseña:</label>
+        <input type="password" id="pass" placeholder="Ingresa tu contraseña">
+        <button onclick="login()">Iniciar Sesión</button>
     </div>
 
-    <div id="login-screen" class="card hidden" style="max-width: 400px; margin: 40px auto;">
-        <h2>Iniciar Sesión</h2>
-        <form onsubmit="ejecutarLogin(event)">
-            <div class="form-group">
-                <label>Usuario / Estudiante (DNI):</label>
-                <input type="text" id="user-input" required placeholder="Ej: 44477478">
-            </div>
-            <div class="form-group">
-                <label>Contraseña:</label>
-                <input type="password" id="pass-input" required placeholder="••••••••">
-            </div>
-            <button type="submit" class="btn-main">Ingresar</button>
-            <p id="login-msg" style="color:red; font-size:13px; margin-top:10px;"></p>
-        </form>
+    <!-- PANEL PRINCIPAL (NIVELES) -->
+    <div id="sec-main" class="card hidden">
+        <h2 id="welcome-msg">Bienvenido</h2>
+        <p>Selecciona tu nivel para comenzar:</p>
+        <div id="levels-grid"></div>
     </div>
-
-    <!-- PANTALLA PRINCIPAL CON NIVELES -->
-    <div id="app-screen" class="hidden">
-        <header>
-            <div class="user-info">
-                <h2 id="student-name">Estudiante: </h2>
-                <p>Nivel Actual Alcanzado: <strong id="student-level">1</strong> / 25</p>
-            </div>
-            <div class="score-badge-container">
-                <div class="score-box">
-                    <div class="score-title">Puntaje Total</div>
-                    <div class="score-value" id="student-score">0 pts</div>
-                </div>
-                <button onclick="location.reload()" class="btn-logout">Salir</button>
-            </div>
-        </header>
-
-        <div class="card">
-            <h3>Tus Niveles de Lectura</h3>
-            <p style="font-size: 14px; color: #64748b;">Haz clic en un nivel disponible para abrir la lectura y su evaluación.</p>
-            <div class="grid-levels" id="levels-grid"></div>
-        </div>
-    </div>
-
 </div>
 
-<!-- VENTANA EMERGENTE (MODAL) CON LECTURA Y PREGUNTAS -->
-<div id="reading-modal" class="modal-overlay">
+<!-- MODAL DE LECTURA -->
+<div id="modal-lectura" class="modal-bg hidden">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modal-reading-title">Cargando Nivel...</h2>
-            <button class="close-modal" onclick="cerrarModalLectura()">&times;</button>
-        </div>
+        <span class="close-btn" onclick="cerrarModal()">&times;</span>
+        <h2 id="modal-reading-title">Cargando...</h2>
         
-        <div class="reading-box" id="modal-reading-text">
-            Cargando el texto...
-        </div>
-
-        <form id="quiz-form"></form>
-
-        <button class="btn-main hidden" id="btn-submit-quiz" onclick="evaluarQuiz()">Enviar Respuestas</button>
-        <div id="result-message" style="margin-top:15px; font-weight:bold; text-align: center;"></div>
+        <div id="modal-reading-text" class="reading-text"></div>
+        
+        <form id="form-preguntas"></form>
+        
+        <button id="btn-submit" onclick="enviarRespuestas()" class="hidden">Enviar Respuestas</button>
     </div>
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFRw66q7CfQSAzkbBE1HttpZh2LoCxna3g7PWzAcApE4y-kBQZ330CZhKkNRL3KmnvNg/exec";
+    const SCRIPT_URL = "TU_URL_DE_APPS_SCRIPT_AQUI"; // Reemplaza con tu Executable URL
+    let currentUser = "";
+    let currentNivel = 1;
+    let preguntasCargadas = [];
 
-let usuarioActual = "";
-let nivelMaximo = 1;
-let nivelSeleccionado = 1;
-let puntajeTotal = 0;
-
-function jsonp(url) {
-    return new Promise((resolve, reject) => {
-        const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            if (document.body.contains(script)) document.body.removeChild(script);
-            resolve(data);
-        };
-
-        const script = document.createElement('script');
-        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-        script.onerror = function() {
-            delete window[callbackName];
-            if (document.body.contains(script)) document.body.removeChild(script);
-            reject(new Error('Error de conexión'));
-        };
-        document.body.appendChild(script);
-    });
-}
-
-function mostrarLogin() {
-    document.getElementById('welcome-screen').classList.add('hidden');
-    document.getElementById('login-screen').classList.remove('hidden');
-}
-
-function ejecutarLogin(e) {
-    e.preventDefault();
-    const u = document.getElementById('user-input').value.trim();
-    const p = document.getElementById('pass-input').value.trim();
-    const msg = document.getElementById('login-msg');
-
-    msg.innerText = "Conectando...";
-    
-    const url = `${SCRIPT_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`;
-
-    jsonp(url)
-    .then(data => {
-        if(data.status === "success") {
-            usuarioActual = u;
-            nivelMaximo = parseInt(data.nivel);
-            nivelSeleccionado = nivelMaximo;
-            
-            puntajeTotal = (nivelMaximo - 1) * 100;
-
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-screen').classList.remove('hidden');
-            
-            // Asigna el nombre de la columna D ("Estudiante")
-            const nombreMostrar = data.nombreEstudiante || u;
-            document.getElementById('student-name').innerText = `Estudiante: ${nombreMostrar}`;
-            document.getElementById('student-level').innerText = nivelMaximo;
-            document.getElementById('student-score').innerText = `${puntajeTotal} pts`;
-
-            renderizarNiveles();
-        } else {
-            msg.innerText = data.message || "Usuario o contraseña incorrectos.";
-        }
-    })
-    .catch(() => { 
-        msg.innerText = "Error de conexión con Google Sheets."; 
-    });
-}
-
-function renderizarNiveles() {
-    const grid = document.getElementById('levels-grid');
-    grid.innerHTML = '';
-
-    for (let i = 1; i <= 25; i++) {
-        const card = document.createElement('div');
-        let insignia = '';
-        if (i === 5) insignia = '<span class="badge-icon">🥉</span>';
-        if (i === 10) insignia = '<span class="badge-icon">🥈</span>';
-        if (i === 20) insignia = '<span class="badge-icon">🥇</span>';
-        if (i === 25) insignia = '<span class="badge-icon">💎</span>';
-
-        if (i <= nivelMaximo) {
-            const esActivo = (i === nivelMaximo);
-            card.className = esActivo ? 'level-card active' : 'level-card unlocked';
-            card.innerHTML = `Nivel ${i} ${esActivo ? '🎯' : '✅'} ${insignia}`;
-            card.onclick = () => { abrirYCaragarnivel(i); };
-        } else {
-            card.className = 'level-card locked';
-            card.innerHTML = `Nivel ${i} 🔒 ${insignia}`;
-        }
-        grid.appendChild(card);
+    function jsonp(url) {
+        return new Promise((resolve) => {
+            const callbackName = 'jp_' + Math.round(100000 * Math.random());
+            window[callbackName] = (data) => {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                resolve(data);
+            };
+            const script = document.createElement('script');
+            script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+            document.body.appendChild(script);
+        });
     }
-}
 
-function abrirYCaragarnivel(n) {
-    nivelSeleccionado = n;
-    const btnSubmit = document.getElementById('btn-submit-quiz');
-    const form = document.getElementById('quiz-form');
-    
-    document.getElementById('modal-reading-title').innerText = `Cargando Nivel ${n}...`;
-    document.getElementById('modal-reading-text').innerText = "Cargando contenido de la lectura...";
-    document.getElementById('result-message').innerText = "";
-    form.innerHTML = "";
-    btnSubmit.classList.add('hidden');
-    
-    abrirModalLectura();
+    async function login() {
+        const u = document.getElementById('user').value;
+        const p = document.getElementById('pass').value;
+        if(!u || !p) return alert("Completa los campos");
 
-    jsonp(`${SCRIPT_URL}?action=getLectura&nivel=${n}`)
-    .then(data => {
+        const res = await jsonp(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`);
+        if(res.status === "success") {
+            currentUser = u;
+            currentNivel = parseInt(res.nivel);
+            document.getElementById('welcome-msg').innerText = `¡Hola, ${res.nombreEstudiante}!`;
+            document.getElementById('sec-login').classList.add('hidden');
+            document.getElementById('sec-main').classList.remove('hidden');
+            renderNiveles();
+        } else {
+            alert(res.message);
+        }
+    }
+
+    function renderNiveles() {
+        const grid = document.getElementById('levels-grid');
+        grid.innerHTML = "";
+        for(let i = 1; i <= 10; i++) {
+            const btn = document.createElement('button');
+            btn.style.margin = "5px";
+            btn.style.width = "auto";
+            btn.innerText = `Nivel ${i}`;
+            if(i > currentNivel) {
+                btn.disabled = true;
+                btn.style.opacity = "0.5";
+            } else {
+                btn.onclick = () => abrirNivel(i);
+            }
+            grid.appendChild(btn);
+        }
+    }
+
+    async function abrirNivel(n) {
+        document.getElementById('modal-lectura').classList.remove('hidden');
+        document.getElementById('modal-reading-title').innerText = "Cargando lectura...";
+        document.getElementById('modal-reading-text').innerHTML = "";
+        document.getElementById('form-preguntas').innerHTML = "";
+        document.getElementById('btn-submit').classList.add('hidden');
+
+        const data = await jsonp(`${SCRIPT_URL}?action=getLectura&nivel=${n}`);
+        
         if(data.status === "success") {
             document.getElementById('modal-reading-title').innerText = `Nivel ${n}: ${data.titulo}`;
-            document.getElementById('modal-reading-text').innerText = data.texto;
+            
+            let htmlContenido = "";
+            if (data.imagen && data.imagen.trim() !== "") {
+                htmlContenido += `<img src="${data.imagen}" class="reading-img" alt="Imagen del texto">`;
+            }
+            htmlContenido += data.texto;
+            document.getElementById('modal-reading-text').innerHTML = htmlContenido;
 
-            btnSubmit.classList.remove('hidden');
+            preguntasCargadas = data.preguntas;
+            const form = document.getElementById('form-preguntas');
+            
+            preguntasCargadas.forEach((p, idx) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = "question-card";
+                
+                let optionsHTML = p.ops.map((op, opIdx) => `
+                    <label class="option-label">
+                        <input type="radio" name="q_${idx}" value="${opIdx}"> ${op}
+                    </label>
+                `).join('');
 
-            data.preguntas.forEach((p, idx) => {
-                let tagClass = p.tipo === 'Literal' ? 'tag-literal' : (p.tipo === 'Inferencial' ? 'tag-inferential' : 'tag-critical');
-                let html = `<div class="question">
-                    <span class="tag ${tagClass}">${p.tipo}</span>
+                qDiv.innerHTML = `
+                    <span class="tag-tipo tag-${p.tipo}">${p.tipo}</span>
                     <p><strong>${idx + 1}. ${p.q}</strong></p>
-                    <div class="options">`;
-                p.ops.forEach((op, opIdx) => {
-                    html += `<label><input type="radio" name="p${idx}" value="${opIdx}"> ${op}</label>`;
-                });
-                html += `</div></div>`;
-                form.innerHTML += html;
+                    ${optionsHTML}
+                `;
+                form.appendChild(qDiv);
             });
+
+            document.getElementById('btn-submit').classList.remove('hidden');
         } else {
-            document.getElementById('modal-reading-title').innerText = `Nivel ${n}`;
-            document.getElementById('modal-reading-text').innerText = "Esta lectura aún no está disponible.";
+            alert(data.message);
+            cerrarModal();
         }
-    })
-    .catch(() => {
-        document.getElementById('modal-reading-text').innerText = "Ocurrió un error al cargar el nivel. Intenta nuevamente.";
-    });
-}
-
-function abrirModalLectura() {
-    document.getElementById('reading-modal').classList.add('active');
-}
-
-function cerrarModalLectura() {
-    document.getElementById('reading-modal').classList.remove('active');
-}
-
-function evaluarQuiz() {
-    let respuestas = [];
-    for (let i = 0; i < 10; i++) {
-        const sel = document.querySelector(`input[name="p${i}"]:checked`);
-        if (!sel) {
-            alert(`Por favor responde la pregunta ${i + 1}`);
-            return;
-        }
-        respuestas.push(parseInt(sel.value));
     }
 
-    const res = document.getElementById('result-message');
-    res.style.color = "blue";
-    res.innerText = "Evaluando respuestas...";
-
-    jsonp(`${SCRIPT_URL}?action=evaluar&user=${encodeURIComponent(usuarioActual)}&nivel=${nivelSeleccionado}&respuestas=${JSON.stringify(respuestas)}`)
-    .then(data => {
-        if (data.correctas === 10) {
-            res.style.color = "green";
-            res.innerText = "¡FELICIDADES! 10/10 (100% aciertos). ¡Has aprobado el nivel y ganado +100 puntos!";
-            
-            if (nivelSeleccionado === nivelMaximo) {
-                nivelMaximo++;
-                puntajeTotal += 100;
-                
-                document.getElementById('student-level').innerText = nivelMaximo;
-                document.getElementById('student-score').innerText = `${puntajeTotal} pts`;
-            }
-            
-            renderizarNiveles();
-            setTimeout(() => { 
-                cerrarModalLectura();
-            }, 2500);
-        } else {
-            res.style.color = "red";
-            res.innerText = `Obtuviste ${data.correctas}/10 aciertos. Para avanzar debes sacar 100%. Revisa la lectura e inténtalo de nuevo.`;
+    async function enviarRespuestas() {
+        let respuestas = [];
+        for(let i = 0; i < preguntasCargadas.length; i++) {
+            const selected = document.querySelector(`input[name="q_${i}"]:checked`);
+            if(!selected) return alert(`Por favor responde la pregunta ${i + 1}`);
+            respuestas.push(parseInt(selected.value));
         }
-    });
-}
-</script>
 
+        const res = await jsonp(`${SCRIPT_URL}?action=evaluar&user=${encodeURIComponent(currentUser)}&nivel=${currentNivel}&respuestas=${JSON.stringify(respuestas)}`);
+        
+        if(res.status === "success") {
+            if(res.correctas === 5) {
+                alert(`¡Excelente! Respondiste 5/5 correctas. Has desbloqueado el siguiente nivel.`);
+                currentNivel++;
+                renderNiveles();
+            } else {
+                alert(`Obtuviste ${res.correctas}/5 correctas. Debes acertar todas las preguntas para pasar de nivel. ¡Vuelve a intentarlo!`);
+            }
+            cerrarModal();
+        }
+    }
+
+    function cerrarModal() {
+        document.getElementById('modal-lectura').classList.add('hidden');
+    }
+</script>
 </body>
 </html>
