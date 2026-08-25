@@ -166,6 +166,7 @@
 
     let currentUser = "";
     let currentNivel = 1;
+    let nivelEnCurso = 1;
     let preguntasCargadas = [];
 
     function jsonp(url, timeoutMs = 12000) {
@@ -251,6 +252,7 @@
     }
 
     async function abrirNivel(n) {
+        nivelEnCurso = n;
         document.getElementById('modal-lectura').classList.remove('hidden');
         document.getElementById('modal-reading-title').innerText = "Cargando lectura...";
         document.getElementById('modal-reading-text').innerHTML = "";
@@ -303,7 +305,6 @@
             const selected = document.querySelector(`input[name="q_${i}"]:checked`);
             if(!selected) return alert(`Por favor responde la pregunta ${i + 1}`);
             
-            // Compara el índice marcado con la opción correcta que viene del Apps Script
             if(parseInt(selected.value) === parseInt(preguntasCargadas[i].correcta)) {
                 aciertos++;
             }
@@ -315,12 +316,20 @@
 
         if(aciertos === 5) {
             try {
-                // Notifica al servidor para subir de nivel
-                await jsonp(`${SCRIPT_URL}?action=subirNivel&user=${encodeURIComponent(currentUser)}&nivel=${currentNivel}`);
-                alert("¡Excelente! Respondiste 5/5 correctas. Has desbloqueado el siguiente nivel.");
-                currentNivel++;
-                renderNiveles();
-                cerrarModal();
+                const res = await jsonp(`${SCRIPT_URL}?action=subirNivel&user=${encodeURIComponent(currentUser)}&nivel=${nivelEnCurso}`);
+                
+                if (res.status === "success") {
+                    if (res.subio) {
+                        currentNivel = res.nuevoNivel;
+                        alert("¡Excelente! Respondiste 5/5 correctas. Has desbloqueado el siguiente nivel.");
+                    } else {
+                        alert("¡Excelente! Respondiste 5/5 correctas. Ya habías completado este nivel previamente.");
+                    }
+                    renderNiveles();
+                    cerrarModal();
+                } else {
+                    alert(res.message || "Error al registrar el nivel.");
+                }
             } catch(e) {
                 alert("Error al actualizar el nivel.");
             }
