@@ -34,6 +34,53 @@
             flex: 1;
         }
 
+        /* PANTALLA DE BIENVENIDA / LANDING */
+        .welcome-hero {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 50px 30px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.25);
+            margin-bottom: 20px;
+        }
+
+        .welcome-hero h1 {
+            font-size: 38px;
+            margin: 0 0 10px 0;
+            letter-spacing: 1px;
+        }
+
+        .welcome-hero p {
+            font-size: 18px;
+            color: #dbeafe;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-enter-start {
+            background-color: #f59e0b;
+            color: #0f172a;
+            font-size: 20px;
+            font-weight: 800;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+            transition: all 0.2s ease-in-out;
+            width: auto;
+            display: inline-block;
+        }
+
+        .btn-enter-start:hover {
+            background-color: #d97706;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+        }
+
         /* PANEL LATERAL DERECHO */
         .sidebar-stats {
             width: 260px;
@@ -274,15 +321,25 @@
 <div class="layout-wrapper">
     <!-- PANEL PRINCIPAL -->
     <div class="main-content">
-        <div id="sec-login" class="card">
+        <!-- 1. PANTALLA INICIAL DE BIENVENIDA -->
+        <div id="sec-welcome" class="welcome-hero">
+            <h1>📖 SANPEDROLEE</h1>
+            <p>Plataforma interactiva de Comprensión Lectora. Demuestra tus habilidades, avanza niveles y gana trofeos y monedas.</p>
+            <button class="btn-enter-start" onclick="irAlLogin()">INGRESAR</button>
+        </div>
+
+        <!-- 2. FORMULARIO DE LOGIN (OCULTO AL INICIO) -->
+        <div id="sec-login" class="card hidden">
             <h2>Ingreso a SANPEDROLEE</h2>
             <label for="user">Usuario:</label>
             <input type="text" id="user" placeholder="Ingresa tu usuario o DNI">
             <label for="pass">Contraseña:</label>
             <input type="password" id="pass" placeholder="Ingresa tu contraseña">
             <button id="btn-login" onclick="login()">Iniciar Sesión</button>
+            <button onclick="volverAInicio()" style="background: none; color: #64748b; border: none; margin-top: 10px; text-decoration: underline; cursor: pointer; font-size: 14px;">← Volver al inicio</button>
         </div>
 
+        <!-- 3. DASHBOARD DE NIVELES (OCULTO AL INICIO) -->
         <div id="sec-main" class="card hidden">
             <h2 id="welcome-msg">Bienvenido</h2>
             <p>Selecciona tu nivel para comenzar a leer:</p>
@@ -348,6 +405,16 @@
         { name: "San Pedro Legendario 💎", range: [16, 20], awardLevel: 21, icon: "💎" },
         { name: "Gran Maestro Lector 👑", range: [21, 25], awardLevel: 26, icon: "👑" }
     ];
+
+    function irAlLogin() {
+        document.getElementById('sec-welcome').classList.add('hidden');
+        document.getElementById('sec-login').classList.remove('hidden');
+    }
+
+    function volverAInicio() {
+        document.getElementById('sec-login').classList.add('hidden');
+        document.getElementById('sec-welcome').classList.remove('hidden');
+    }
 
     function jsonp(url, timeoutMs = 12000) {
         return new Promise((resolve, reject) => {
@@ -415,14 +482,12 @@
     }
 
     function actualizarStats() {
-        // Cada nivel completado otorga 5 monedas
         const nivelesCompletados = currentNivel - 1;
         const monedas = nivelesCompletados * 5;
 
         document.getElementById('stat-level').innerText = currentNivel;
         document.getElementById('stat-coins').innerText = `🪙 ${monedas}`;
 
-        // Obtener nombre del rango según el nivel actual
         let rango = "Iniciante 🐣";
         if (currentNivel >= 26) rango = "Gran Maestro 👑";
         else if (currentNivel >= 21) rango = "Legendario 💎";
